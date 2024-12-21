@@ -7,14 +7,17 @@ class Employee(models.Model):
         ("On Leave", "On Leave"),
     ]
 
-    name = models.CharField(max_length=50)
+    emp_name = models.CharField(max_length=50)
     salary = models.DecimalField(max_digits=10, decimal_places=0)
     status = models.CharField(max_length=20, choices=STATUS_CH, default="Active")
     createdAt = models.DateTimeField(auto_now_add=True)
     updatedAt = models.DateTimeField(auto_now=True)
-
+    emp_aadhar = models.CharField(default='NA',max_length=15)
+    mobile = models.BigIntegerField(unique=True,default=1000100010)
+    email = models.EmailField(unique=True)
+    password = models.CharField(max_length=20,default='0000')
     def __str__(self):
-        return self.name
+        return self.emp_name
 
 
 class Service(models.Model):
@@ -32,12 +35,12 @@ class Client(models.Model):
         ("Pending", "Pending"),
     ]
 
-    clientName = models.CharField(max_length=40)
+    clientName = models.CharField(max_length=60)
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
     status = models.CharField(choices=STATUS_CH, max_length=20, default="Pending")
-    pan = models.CharField(max_length=10, unique=True)
-    aadhar = models.CharField(max_length=12, unique=True)
-    mobile = models.CharField(max_length=13, unique=True)
+    pan = models.CharField(max_length=15, unique=True)
+    aadhar = models.CharField(max_length=15, unique=True)
+    mobile = models.CharField(max_length=15, unique=True)
     email = models.EmailField(unique=True)
     referredBy = models.ForeignKey("self", null=True, blank=True, on_delete=models.SET_NULL, related_name="referrals")
     services = models.ManyToManyField(Service, through="ClientService")
