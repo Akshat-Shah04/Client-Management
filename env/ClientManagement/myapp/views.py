@@ -107,9 +107,10 @@ def create_client(request):
             # Create the client
             client = Client.objects.create(
                 clientName=request.POST["clientName"],
-                employee=employee.POST["employee"],
+                employee=employee,
                 status="Active",  # Default status
                 pan=request.POST["pan"],
+                city=request.POST["city"],
                 aadhar=request.POST["aadhar"],
                 mobile=request.POST["mobile"],
                 email=request.POST["email"],

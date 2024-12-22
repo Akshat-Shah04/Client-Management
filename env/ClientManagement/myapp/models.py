@@ -1,5 +1,6 @@
 from django.db import models
 
+
 class Employee(models.Model):
     STATUS_CH = [
         ("Active", "Active"),
@@ -12,10 +13,11 @@ class Employee(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CH, default="Active")
     createdAt = models.DateTimeField(auto_now_add=True)
     updatedAt = models.DateTimeField(auto_now=True)
-    emp_aadhar = models.CharField(default='NA',blank=True,null=True,max_length=15)
-    mobile = models.BigIntegerField(unique=True,default=1000100010)
+    emp_aadhar = models.CharField(default="NA", blank=True, null=True, max_length=15)
+    mobile = models.BigIntegerField(unique=True, default=1000100010)
     email = models.EmailField(unique=True)
-    password = models.CharField(max_length=20,default='0000')
+    password = models.CharField(max_length=20, default="0000")
+
     def __str__(self):
         return self.emp_name
 
@@ -41,8 +43,15 @@ class Client(models.Model):
     pan = models.CharField(max_length=15, unique=True)
     aadhar = models.CharField(max_length=15, unique=True)
     mobile = models.CharField(max_length=15, unique=True)
+    city = models.CharField(max_length=30)
     email = models.EmailField(unique=True)
-    referredBy = models.ForeignKey("self", null=True, blank=True, on_delete=models.SET_NULL, related_name="referrals")
+    referredBy = models.ForeignKey(
+        "self",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="referrals",
+    )
     services = models.ManyToManyField(Service, through="ClientService")
     createdAt = models.DateTimeField(auto_now_add=True)
     updatedAt = models.DateTimeField(auto_now=True)

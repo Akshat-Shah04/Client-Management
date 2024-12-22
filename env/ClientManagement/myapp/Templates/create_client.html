@@ -7,9 +7,13 @@
       {% csrf_token %}
       <!-- Client Name -->
       <div class="row">
-        <div class="mb-3 col-md-12">
+        <div class="mb-3 col-md-6">
           <label for="clientName" class="form-label">Client Name</label>
           <input type="text" class="form-control" id="clientName" name="clientName" placeholder="Enter Client Name" required />
+        </div>
+        <div class="mb-3 col-md-6">
+          <label for="clientName" class="form-label">City of Residence</label>
+          <input type="text" class="form-control" id="city" name="city" placeholder="Enter City" required />
         </div>
       </div>
 
