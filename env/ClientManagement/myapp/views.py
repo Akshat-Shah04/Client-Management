@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from .models import Employee, Client
+from .models import Employee, Client, Service, ClientService, Payment
 from django.contrib import messages
 
 # Create your views here.
@@ -24,7 +24,6 @@ def signup(request):
                 messages.error(request, "Mobile number is already registered.")
                 return redirect("signup")
 
-            # Create a new employee
             Employee.objects.create(
                 emp_name=emp_name,
                 salary=salary,
@@ -34,9 +33,12 @@ def signup(request):
                 email=email,
                 password=password,
             )
+
             messages.success(request, "Sign-up successful. Please login.")
             print("Sign-up successful. Please login.")
+
             return redirect("login")  # Redirect to login page
+
         except Exception as e:
             messages.error(request, f"Error during sign-up: {e}")
             return redirect("signup")
@@ -88,3 +90,69 @@ def dashboard(request):
         print(e)
         msg = "Error fetching clients!!!"
         return render(request, "dashboard.html", {"clients": [], "msg": msg})
+
+
+from django.shortcuts import render, redirect
+from .models import Employee, Client, Service, ClientService
+from django.contrib import messages
+
+
+def create_client(request):
+    if request.method == "POST":
+        try:
+            # Fetch the logged-in employee
+            employee = Employee.objects.get(email=request.session["email"])
+
+            # Get referredBy (optional)
+            referred_by_id = request.POST.get("referredBy", None)
+            referred_by = (
+                Client.objects.get(id=referred_by_id) if referred_by_id else None
+            )
+
+            # Create the client
+            client = Client.objects.create(
+                clientName=request.POST["clientName"],
+                employee=employee,
+                status="Active",  # Default status
+                pan=request.POST["pan"],
+                aadhar=request.POST["aadhar"],
+                mobile=request.POST["mobile"],
+                email=request.POST["email"],
+                referredBy=referred_by,
+            )
+
+            # Add services (no price for now)
+            service_ids = request.POST.getlist("services")  # List of service IDs
+            for service_id in service_ids:
+                service = Service.objects.get(id=service_id)
+                # Create a ClientService instance linking the client to the service
+                ClientService.objects.create(
+                    client=client,
+                    service=service,
+                    fee=0,  # No fee set initially; can be updated when billing
+                )
+
+            messages.success(request, "Client created successfully!")
+            return redirect("dashboard")  # Redirect to the dashboard or desired page
+
+        except Employee.DoesNotExist:
+            messages.error(request, "Logged-in employee not found.")
+            return redirect("login")
+        except Service.DoesNotExist:
+            messages.error(request, "Selected service not found.")
+        except Exception as e:
+            messages.error(request, f"Error creating client: {e}")
+
+    # For GET requests, render the create client page with required data
+    employees = Employee.objects.all()
+    services = Service.objects.all()
+    clients = Client.objects.all()
+    return render(
+        request,
+        "create_client.html",
+        {
+            "employees": employees,
+            "services": services,
+            "clients": clients,
+        },
+    )

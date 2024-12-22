@@ -12,7 +12,7 @@ class Employee(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CH, default="Active")
     createdAt = models.DateTimeField(auto_now_add=True)
     updatedAt = models.DateTimeField(auto_now=True)
-    emp_aadhar = models.CharField(default='NA',max_length=15)
+    emp_aadhar = models.CharField(default='NA',blank=True,null=True,max_length=15)
     mobile = models.BigIntegerField(unique=True,default=1000100010)
     email = models.EmailField(unique=True)
     password = models.CharField(max_length=20,default='0000')
@@ -37,7 +37,7 @@ class Client(models.Model):
 
     clientName = models.CharField(max_length=60)
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
-    status = models.CharField(choices=STATUS_CH, max_length=20, default="Pending")
+    status = models.CharField(choices=STATUS_CH, max_length=20, default="Active")
     pan = models.CharField(max_length=15, unique=True)
     aadhar = models.CharField(max_length=15, unique=True)
     mobile = models.CharField(max_length=15, unique=True)

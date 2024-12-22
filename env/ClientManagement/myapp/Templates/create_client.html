@@ -1,0 +1,82 @@
+{% extends 'header.html' %}
+{% load static %}
+{% block content %}
+  <div class="container mt-5">
+    <h2 class="text-center">Add New Client</h2>
+    <form method="post" action="{% url 'create_client' %}" class="border p-4 rounded bg-light shadow-lg mb-5">
+      {% csrf_token %}
+      <!-- Client Name -->
+      <div class="row">
+        <div class="mb-3 col-md-12">
+          <label for="clientName" class="form-label">Client Name</label>
+          <input type="text" class="form-control" id="clientName" name="clientName" placeholder="Enter Client Name" required />
+        </div>
+      </div>
+
+      <!-- PAN and Aadhar -->
+      <div class="row">
+        <div class="mb-3 col-md-6">
+          <label for="pan" class="form-label">PAN</label>
+          <input type="text" class="form-control" id="pan" name="pan" placeholder="Enter PAN" required />
+        </div>
+        <div class="mb-3 col-md-6">
+          <label for="aadhar" class="form-label">Aadhar</label>
+          <input type="text" class="form-control" id="aadhar" name="aadhar" placeholder="Enter Aadhar" required />
+        </div>
+      </div>
+
+      <!-- Mobile and Email -->
+      <div class="row">
+        <div class="mb-3 col-md-6">
+          <label for="mobile" class="form-label">Mobile</label>
+          <input type="tel" class="form-control" id="mobile" name="mobile" placeholder="Enter Mobile Number" required />
+        </div>
+        <div class="mb-3 col-md-6">
+          <label for="email" class="form-label">Email</label>
+          <input type="email" class="form-control" id="email" name="email" placeholder="Enter Email" required />
+        </div>
+      </div>
+
+      <!-- Employee and Referred By -->
+      <div class="row">
+        <div class="mb-3 col-md-6">
+          <label for="employee" class="form-label">Employee</label>
+          <select class="form-control" id="employee" name="employee">
+            {% for emp in employees %}
+              <option value="{{ emp.id }}">{{ emp.emp_name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="mb-3 col-md-6">
+          <label for="referredBy" class="form-label">Referred By</label>
+          <select class="form-control" id="referredBy" name="referredBy">
+            <option value="" selected>None</option>
+            {% for client in clients %}
+              <option value="{{ client.id }}">{{ client.clientName }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <!-- Services -->
+      <div class="row">
+        <div class="mb-3 col-md-12">
+          <label for="services" class="form-label">Services</label>
+          <select class="form-control" id="services" name="services" multiple>
+            {% for service in services %}
+              <option value="{{ service.id }}">{{ service.name }}</option>
+            {% endfor %}
+          </select>
+          <small class="text-muted">Hold Ctrl (or Cmd on Mac) to select multiple services</small>
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <div class="row my-4">
+        <div class="col-12 text-center">
+          <button type="submit" class="btn btn-success w-50">Add Client</button>
+        </div>
+      </div>
+    </form>
+  </div>
+{% endblock %}
