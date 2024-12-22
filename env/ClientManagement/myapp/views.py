@@ -92,11 +92,6 @@ def dashboard(request):
         return render(request, "dashboard.html", {"clients": [], "msg": msg})
 
 
-from django.shortcuts import render, redirect
-from .models import Employee, Client, Service, ClientService
-from django.contrib import messages
-
-
 def create_client(request):
     if request.method == "POST":
         try:
@@ -112,7 +107,7 @@ def create_client(request):
             # Create the client
             client = Client.objects.create(
                 clientName=request.POST["clientName"],
-                employee=employee,
+                employee=employee.POST["employee"],
                 status="Active",  # Default status
                 pan=request.POST["pan"],
                 aadhar=request.POST["aadhar"],
@@ -121,16 +116,17 @@ def create_client(request):
                 referredBy=referred_by,
             )
 
-            # Add services (no price for now)
+            # Add services
             service_ids = request.POST.getlist("services")  # List of service IDs
             for service_id in service_ids:
                 service = Service.objects.get(id=service_id)
                 # Create a ClientService instance linking the client to the service
-                ClientService.objects.create(
+                clientServ = ClientService.objects.create(
                     client=client,
                     service=service,
                     fee=0,  # No fee set initially; can be updated when billing
                 )
+                print(30 * ">", "Client Service => >>>>>", clientServ)
 
             messages.success(request, "Client created successfully!")
             return redirect("dashboard")  # Redirect to the dashboard or desired page
