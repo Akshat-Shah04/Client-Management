@@ -66,15 +66,20 @@ def login(request):
             msg = "Error Logging In..."
             return render(request, "login.html", {"msg": msg})
     else:
-        # For GET requests, render the login page
+        # For GET requests
         return render(request, "login.html")
 
 
 def logout(request):
     # Clear session data
     request.session.flush()
-    return redirect("login")  # Use named route if configured in urls.py
+    return redirect("login")
 
 
 def dashboard(request):
-    return render(request, "dashboard.html")
+    client = Client.objects.all()
+    return render(request, "dashboard.html", {"clients": client})
+
+
+def add_client(request):
+    return render(request,"add_client.html")
