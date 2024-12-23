@@ -30,9 +30,21 @@
             <th scope="row" style="background-color: #2abc9c; color: #ffffff;">{{ i.id }}</th>
             <td>{{ i.clientName }}</td>
             <td>{{ i.mobile }}</td>
-            <td>{{ i.sec_mobile }}</td>
+            {% if not i.sec_mobile %}
+              <td>
+                <span class="badge font-monospace bg-warning text-dark">None</span>
+              </td>
+            {% else %}
+              <td>{{ i.sec_mobile }}</td>
+            {% endif %}
             <td>{{ i.city }}</td>
-            <td>{{ i.email }}</td>
+            {% if not i.email %}
+              <td>
+                <span class="badge font-monospace bg-warning text-dark">None</span>
+              </td>
+            {% else %}
+              <td>{{ i.email }}</td>
+            {% endif %}
             {% comment %} <td>
               {% for service in i.services.all %}
                 <span class="text-danger">{{ service.name }}</span>{% if not forloop.last %}, {% endif %}

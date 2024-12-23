@@ -40,7 +40,7 @@ class Client(models.Model):
     clientName = models.CharField(max_length=60)
     status = models.CharField(choices=STATUS_CH, max_length=20, default="Active")
     mobile = models.CharField(max_length=15, unique=True)
-    sec_mobile = models.CharField(max_length=15, unique=True)
+    sec_mobile = models.CharField(max_length=15, unique=True, blank=True, null=True)
     city = models.CharField(max_length=30)
     email = models.EmailField(unique=True, blank=True, null=True)
     referredBy = models.CharField(max_length=50, default="NA")

@@ -82,4 +82,38 @@ def dashboard(request):
 
 
 def add_client(request):
-    return render(request,"add_client.html")
+    if request.method == "POST":
+        try:
+            # Create a new client
+            client = Client.objects.create(
+                clientName=request.POST["clientName"],
+                mobile=request.POST["mobile"],
+                sec_mobile=request.POST["sec_mobile"],
+                city=request.POST["city"],
+                referredBy=request.POST["referredBy"],
+                email=request.POST.get("email", None),
+            )
+
+            # Get selected service IDs from the POST data
+            service_ids = request.POST.getlist("services")
+            for service_id in service_ids:
+                service = Service.objects.get(id=service_id)
+                ClientService.objects.create(
+                    service=service,
+                    client=client,
+                    fee=0,  # Set fee to 0 or another default value
+                )
+
+            messages.success(request, "Client created successfully.")
+            return redirect("dashboard")  # Redirect to the dashboard or another page
+
+        except Exception as e:
+            print("Error Occurred:", e)
+            messages.error(request, f"An error occurred: {e}")
+            return render(
+                request, "add_client.html", {"services": Service.objects.all()}
+            )
+    else:
+        # Render the form with available services
+        services = Service.objects.all()
+        return render(request, "add_client.html", {"services": services})
