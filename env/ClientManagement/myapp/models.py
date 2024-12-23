@@ -9,11 +9,11 @@ class Employee(models.Model):
     ]
 
     emp_name = models.CharField(max_length=50)
-    salary = models.DecimalField(max_digits=10, decimal_places=0)
+    salary = models.DecimalField(max_digits=20, decimal_places=0)
     status = models.CharField(max_length=20, choices=STATUS_CH, default="Active")
     createdAt = models.DateTimeField(auto_now_add=True)
     updatedAt = models.DateTimeField(auto_now=True)
-    emp_aadhar = models.CharField(default="NA", blank=True, null=True, max_length=15)
+    # emp_aadhar = models.CharField(default="NA", blank=True, null=True, max_length=15)
     mobile = models.BigIntegerField(unique=True, default=1000100010)
     email = models.EmailField(unique=True)
     password = models.CharField(max_length=20, default="0000")
@@ -38,20 +38,12 @@ class Client(models.Model):
     ]
 
     clientName = models.CharField(max_length=60)
-    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
     status = models.CharField(choices=STATUS_CH, max_length=20, default="Active")
-    pan = models.CharField(max_length=15, unique=True)
-    aadhar = models.CharField(max_length=15, unique=True)
     mobile = models.CharField(max_length=15, unique=True)
+    sec_mobile = models.CharField(max_length=15, unique=True)
     city = models.CharField(max_length=30)
-    email = models.EmailField(unique=True)
-    referredBy = models.ForeignKey(
-        "self",
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name="referrals",
-    )
+    email = models.EmailField(unique=True, blank=True, null=True)
+    referredBy = models.CharField(max_length=50, default="NA")
     services = models.ManyToManyField(Service, through="ClientService")
     createdAt = models.DateTimeField(auto_now_add=True)
     updatedAt = models.DateTimeField(auto_now=True)
