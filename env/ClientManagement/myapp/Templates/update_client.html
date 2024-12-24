@@ -2,33 +2,34 @@
 {% load static %}
 {% block content %}
   <div class="container mt-5">
-    <h2 class="text-center mb-5">Add New Client</h2>
+    <h2 class="text-center mb-5">Update Client</h2>
     {% if msg %}
       <p class="ps-5 text-warning fs-4">{{ msg }}</p>
     {% endif %}
-    <form method="post" action="{% url 'add_client' %}" class="border p-4 rounded bg-light shadow-lg mb-5">
+    <form method="post" action="{% url 'update_client' pk=client.pk %}" class="border p-4 rounded bg-light shadow-lg mb-5">
       {% csrf_token %}
-      <!-- Client Name -->
+
+      <!-- Client Name and City -->
       <div class="row">
         <div class="mb-3 col-md-6">
           <label for="clientName" class="form-label">Client Name</label>
-          <input type="text" class="form-control" id="clientName" name="clientName" placeholder="Enter Client Name" required />
+          <input type="text" class="form-control" id="clientName" name="clientName" value="{{ client.clientName }}" placeholder="Enter Client Name" required />
         </div>
         <div class="mb-3 col-md-6">
-          <label for="clientName" class="form-label">City of Residence</label>
-          <input type="text" class="form-control" id="city" name="city" placeholder="Enter City" required />
+          <label for="city" class="form-label">City of Residence</label>
+          <input type="text" class="form-control" id="city" name="city" value="{{ client.city }}" placeholder="Enter City" required />
         </div>
       </div>
 
-      <!-- Mobile Number -->
+      <!-- Mobile Numbers -->
       <div class="row">
         <div class="mb-3 col-md-6">
           <label for="mobile" class="form-label">Mobile</label>
-          <input type="tel" class="form-control" id="mobile" name="mobile" placeholder="Enter Mobile Number" required />
+          <input type="tel" class="form-control" id="mobile" name="mobile" value="{{ client.mobile }}" placeholder="Enter Mobile Number" required />
         </div>
         <div class="mb-3 col-md-6">
           <label for="sec_mobile" class="form-label">Second Mobile</label>
-          <input type="tel" class="form-control" id="sec_mobile" name="sec_mobile" placeholder="Enter Mobile Number" />
+          <input type="tel" class="form-control" id="sec_mobile" name="sec_mobile" value="{{ client.sec_mobile }}" placeholder="Enter Secondary Mobile Number" />
         </div>
       </div>
 
@@ -36,11 +37,11 @@
       <div class="row">
         <div class="mb-3 col-md-6">
           <label for="email" class="form-label">Email</label>
-          <input type="email" class="form-control" id="email" name="email" placeholder="Enter Email" />
+          <input type="email" class="form-control" id="email" name="email" value="{{ client.email }}" placeholder="Enter Email" />
         </div>
         <div class="mb-3 col-md-6">
           <label for="referredBy" class="form-label">Referred By</label>
-          <input type="text" class="form-control" id="referredBy" name="referredBy" placeholder="Enter Referred By Name" />
+          <input type="text" class="form-control" id="referredBy" name="referredBy" value="{{ client.referredBy }}" placeholder="Enter Referrer Name" />
         </div>
       </div>
 
@@ -50,7 +51,11 @@
           <label for="services" class="form-label">Services</label>
           <select class="form-control" id="services" name="services" multiple>
             {% for service in services %}
-              <option value="{{ service.id }}">{{ service.name }}</option>
+              {% if service in client.services.all %}
+                <option value="{{ service.id }}" selected>{{ service.name }}</option>
+              {% else %}
+                <option value="{{ service.id }}">{{ service.name }}</option>
+              {% endif %}
             {% endfor %}
           </select>
           <small class="text-muted">Hold Ctrl (or Cmd on Mac) to select multiple services</small>
@@ -60,7 +65,7 @@
       <!-- Submit Button -->
       <div class="row my-4">
         <div class="col-12 text-center">
-          <button type="submit" class="btn btn-success w-50">Add Client</button>
+          <button type="submit" class="btn btn-success w-50">Update Client</button>
         </div>
       </div>
     </form>

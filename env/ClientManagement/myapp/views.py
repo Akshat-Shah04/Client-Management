@@ -7,13 +7,13 @@ from django.contrib import messages
 
 def signup(request):
     if request.method == "POST":
-        emp_name = request.POST.get("emp_name")
-        salary = request.POST.get("salary")
+        emp_name = request.POST["emp_name"]
+        salary = request.POST["salary"]
         emp_aadhar = request.POST.get("emp_aadhar", "NA")
-        mobile = request.POST.get("mobile")
-        email = request.POST.get("email")
+        mobile = request.POST["mobile"]
+        email = request.POST["email"]
         status = "Active"
-        password = request.POST.get("password")
+        password = request.POST["password"]
 
         try:
             # Check for duplicate email or mobile
@@ -108,7 +108,7 @@ def add_client(request):
             return redirect("dashboard")  # Redirect to the dashboard or another page
 
         except Exception as e:
-            print("Error Occurred:", e)
+            print(">" * 30, " Error Occurred >>>>> add_client >>>>>", e)
             messages.error(request, f"An error occurred: {e}")
             return render(
                 request, "add_client.html", {"services": Service.objects.all()}
@@ -117,3 +117,49 @@ def add_client(request):
         # Render the form with available services
         services = Service.objects.all()
         return render(request, "add_client.html", {"services": services})
+
+
+def update_client(request, pk):
+    client = Client.objects.get(pk=pk)
+    services = Service.objects.all()
+
+    if request.method == "POST":
+        # Update client fields
+        client.clientName = request.POST["clientName"]
+        client.mobile = request.POST["mobile"]
+        client.sec_mobile = request.POST["sec_mobile"]
+        client.city = request.POST["city"]
+        client.email = request.POST.get("email", None)
+        client.referredBy = request.POST.get("referredBy", None)
+
+        # Update Many-to-Many Services (if applicable)
+        selected_services = request.POST.getlist("services")  # Get selected services
+        client.services.set(selected_services)  # Update services
+
+        try:
+            client.save()
+            messages.success(request, "Client Updated Successfully")
+            return redirect("dashboard")
+        except Exception as e:
+            print(">" * 30, "Error Occurred >>> update_client >>>", e)
+            messages.error(request, "Failed to update client. Please try again.")
+            return render(
+                request, "update_client.html", {"client": client, "services": services}
+            )
+    else:
+        return render(
+            request, "update_client.html", {"client": client, "services": services}
+        )
+
+
+def delete_client(request, pk):
+    try:
+        client = Client.objects.get(pk=pk)
+        ClientService.objects.filter(client=client).delete()
+        client.delete()
+        messages.success(request, "Client deleted successfully.")
+        return redirect("dashboard")
+    except Exception as e:
+        print(">>>>>>>>> Error Occurred >>> delete_client >>>", e)
+        messages.error(request, "Failed to delete client. Please try again.")
+        return redirect("dashboard")
