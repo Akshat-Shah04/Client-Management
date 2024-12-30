@@ -1,0 +1,92 @@
+.table-hover tbody tr:hover {
+    background-color: #d1f0ff;
+}
+
+.container {
+    padding: 20px;
+}
+
+.table-bordered {
+    border: 1px solid #dee2e6;
+}
+
+.table-hover tbody tr:hover {
+    background-color: #d1f0ff;
+}
+
+.btn-group .btn {
+    margin: 0 5px;
+}
+
+.btn-info {
+    background-color: #17a2b8;
+    border-color: #17a2b8;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.btn-info:hover,
+.btn-danger:hover {
+    opacity: 0.9;
+}
+
+.bg-primary {
+    background-color: #2c3e50 !important;
+}
+
+.text-white {
+    color: #fff !important;
+}
+
+.form-control-lg {
+    font-size: 1.25rem;
+}
+
+.search-bar-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 15px;
+    border: 2px solid #000;
+}
+
+.badge-warning {
+    background-color: #ffc107;
+    color: #000;
+}
+
+.badge-warning.text-dark {
+    color: #000;
+}
+
+.text-muted {
+    color: #6c757d !important;
+}
+
+.text-primary {
+    color: #007bff !important;
+}
+
+.text-dark {
+    color: #000 !important;
+}
+
+.bg-info {
+    background-color: #2abc9c !important;
+    color: #fff !important;
+}
+
+.font-monospace {
+    font-family: 'Courier New', Courier, monospace;
+}
+
+.font-verdana {
+    font-family: 'Verdana', sans-serif;
+}
+
+.font-arial {
+    font-family: 'Arial', sans-serif;
+}

@@ -1,0 +1,55 @@
+{% extends 'header.html' %}
+{% load static %}
+{% block content %}
+  <div class="container mt-4">
+    <h1 class="text-center">Client Details</h1>
+
+    <!-- Client Information -->
+    <div class="card my-4">
+      <div class="card-header bg-primary text-white">
+        <h3>{{ client.clientName }}</h3>
+      </div>
+      <div class="card-body">
+        <p>
+          <strong>Mobile:</strong> {{ client.mobile }}
+        </p>
+        <p>
+          <strong>Second Mobile:</strong> {{ client.sec_mobile }}
+        </p>
+        <p>
+          <strong>City:</strong> {{ client.city }}
+        </p>
+        <p>
+          <strong>Address:</strong> {{ client.address }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Services and Billing Information -->
+    <h3 class="mt-4">Services and Billing Information</h3>
+    <table class="table table-bordered table-striped">
+      <thead>
+        <tr>
+          <th>Service Name</th>
+          <th>Status</th>
+          <th>Billing Date</th>
+          <th>Fee</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for service in client_services %}
+          <tr>
+            <td>{{ service.service.name }}</td>
+            <td>{{ service.status }}</td>
+            <td>{{ service.billing_date }}</td>
+            <td>{{ service.fee|floatformat:2 }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="mt-3">
+      <a href="{% url 'clients' %}" class="btn btn-secondary">Back to Clients</a>
+    </div>
+  </div>
+{% endblock %}

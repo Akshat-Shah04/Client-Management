@@ -1,0 +1,68 @@
+{% extends 'header.html' %}
+{% block content %}
+  <div class="container mt-5">
+    <h2 class="text-center mb-5">Update Services for {{ client.clientName }}</h2>
+
+    <form method="post" class="border p-4 rounded bg-light shadow-lg mb-5">
+      {% csrf_token %}
+      <div class="row mb-4">
+        <div class="col-md-6">
+          <label class="form-label font-weight-bold">Client Name:</label>
+          <p class="form-control-plaintext">{{ client.clientName }}</p>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label font-weight-bold">City:</label>
+          <p class="form-control-plaintext">{{ client.city }}</p>
+        </div>
+      </div>
+
+      <div class="row mb-4">
+        <h4 class="mb-3">Update Services</h4>
+        {% for service in services %}
+          <div class="col-md-6 mb-4">
+            <div class="card shadow-sm">
+              <div class="card-body">
+                <h5 class="card-title">{{ service.service.name }}</h5>
+
+                <!-- Fee -->
+                <div class="mb-3">
+                  <label for="fee_{{ service.id }}" class="form-label">Fee:</label>
+                  <input type="number" class="form-control" id="fee_{{ service.id }}" name="fee_{{ service.id }}" value="{{ service.fee }}" step="0.01" required />
+                </div>
+
+                <!-- Status -->
+                <div class="mb-3">
+                  <label for="status_{{ service.id }}" class="form-label">Status:</label>
+                  <select id="status_{{ service.id }}" name="status_{{ service.id }}" class="form-control" required>
+                    {% for key, value in status_choices %}
+                      {% if key == service.status %}
+                        <option value="{{ key }}" selected>{{ value }}</option>
+                      {% else %}
+                        <option value="{{ key }}">{{ value }}</option>
+                      {% endif %}
+                    {% endfor %}
+                  </select>
+                </div>
+
+                <!-- Billing Date -->
+                <div class="mb-3">
+                  <label for="billing_date_{{ service.id }}" class="form-label">Billing Date:</label>
+                  <input type="date" class="form-control" id="billing_date_{{ service.id }}" name="billing_date_{{ service.id }}" value="{{ service.billing_date|date:'Y-m-d' }}" />
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+      <div class="row mt-4">
+        <div class="col text-center">
+          <button type="submit" class="btn btn-primary">Update Services</button>
+        </div>
+        <div class="col text-center">
+          <button type="submit" class="btn btn-primary">Update Services</button>
+        </div>
+      </div>
+    </form>
+  </div>
+{% endblock %}

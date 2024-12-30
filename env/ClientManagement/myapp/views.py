@@ -1,6 +1,9 @@
 from django.shortcuts import render, redirect
-from .models import Employee, Client, Service, ClientService, Payment
+from .models import Employee, Client, Service, ClientService
 from django.contrib import messages
+from django.shortcuts import render, get_object_or_404
+from datetime import date
+from django.http import HttpResponse
 
 # Create your views here.
 
@@ -94,6 +97,7 @@ def add_client(request):
                 email=request.POST.get("email", None),
             )
 
+            """
             # Get selected service IDs from the POST data
             service_ids = request.POST.getlist("services")
             for service_id in service_ids:
@@ -103,18 +107,16 @@ def add_client(request):
                     client=client,
                     fee=0,  # Set fee to 0 or another default value
                 )
-
+            """
             messages.success(request, "Client created successfully.")
             return redirect("dashboard")  # Redirect to the dashboard or another page
 
         except Exception as e:
             print(">" * 30, " Error Occurred >>>>> add_client >>>>>", e)
             messages.error(request, f"An error occurred: {e}")
-            return render(
-                request, "add_client.html", {"services": Service.objects.all()}
-            )
+            return render(request, "add_client.html")
     else:
-        # Render the form with available services
+        # Render the form with available s+ervices
         services = Service.objects.all()
         return render(request, "add_client.html", {"services": services})
 
@@ -163,3 +165,123 @@ def delete_client(request, pk):
         print(">>>>>>>>> Error Occurred >>> delete_client >>>", e)
         messages.error(request, "Failed to delete client. Please try again.")
         return redirect("dashboard")
+
+
+def clients(request):
+    query = request.GET.get("q", "")
+    if query:
+        clients = (
+            Client.objects.filter(clientName__icontains=query)
+            | Client.objects.filter(mobile__icontains=query)
+            | Client.objects.filter(sec_mobile__icontains=query)
+        )
+
+    else:
+        clients = Client.objects.all()
+
+    client_data = []
+    for client in clients:
+        services = ClientService.objects.filter(client=client)
+        client_data.append(
+            {
+                "client": client,
+                "services": services,
+            }
+        )
+
+    return render(request, "clients.html", {"client_data": client_data, "query": query})
+
+
+def add_clientservice(request, pk):
+    client = get_object_or_404(Client, pk=pk)
+    services = Service.objects.all()
+    status_choices = ClientService.SERV_STATUS
+
+    if request.method == "POST":
+        selected_services = request.POST.getlist("services")
+        for service_id in selected_services:
+            service = get_object_or_404(Service, pk=service_id)
+
+            fee = request.POST.get(f"fee_{service.id}")
+            status = request.POST.get(f"status_{service.id}")
+            billing_date = (
+                request.POST.get(f"billing_date_{service.id}") or date.today()
+            )
+            if not fee or not status:
+                return HttpResponse("Please fill in all required fields.", status=400)
+
+            # Save client service with default billing date if not provided
+            ClientService.objects.create(
+                client=client,
+                service=service,
+                fee=fee,
+                status=status,
+                billing_date=billing_date,
+            )
+
+        return redirect("clients")
+
+    return render(
+        request,
+        "add_clientservice.html",
+        {"client": client, "services": services, "status_choices": status_choices},
+    )
+
+
+def delete_clientSerivce(request, pk):
+    try:
+        ClientService.objects.filter(pk=pk).delete()
+        return redirect("dashboard")
+    except Exception as e:
+        print(f">>>>> Error Occurred >>>>> Delete ClientService >>>>> {pk} >>>>> !!!")
+        return redirect("dashboard")
+
+
+def update_clientservice(request, pk):
+    # Fetch the client and their services
+    client = get_object_or_404(Client, pk=pk)
+    client_services = ClientService.objects.filter(client=client)
+    services = Service.objects.all()  # Available services
+    status_choices = ClientService.SERV_STATUS  # Status choices defined in the model
+    print(">>>>>>>>>> ERror 1 >>>>>>>>>>")
+    if request.method == "POST":
+        # Iterate through submitted services and update each record
+        print(">>>>>>>>> Error 2 >>>>>>>>")
+        for service in client_services:
+            fee = request.POST.get(f"fee_{service.id}")
+            status = request.POST.get(f"status_{service.id}")
+            billing_date = (
+                request.POST.get(f"billing_date_{service.id}") or date.today()
+            )
+            print(">>>>>>>>Error 3>>>>>>>>>>>")
+
+            # Update service fields
+            service.fee = float(fee) if fee else service.fee
+            service.status = status
+            service.billing_date = billing_date
+            print(">>>>>>>>>>>> Error 4 >>>>>>>>>>>>c")
+            service.save()
+            print(">>>>>>>>>>>> Error 5 >>>>>>>>>>>>")
+
+        return redirect("clients")  # Redirect to the client list page
+
+    return render(
+        request,
+        "update_clientservice.html",
+        {
+            "client": client,
+            "services": client_services,
+            "status_choices": status_choices,
+        },
+    )
+
+
+def view_client(request, pk):
+    client = get_object_or_404(Client, pk=pk)
+    client_services = ClientService.objects.filter(client=client)
+
+    context = {
+        "client": client,
+        "client_services": client_services,
+    }
+    return render(request, "view_client.html", context)

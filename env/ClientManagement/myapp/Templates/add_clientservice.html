@@ -1,0 +1,96 @@
+{% extends 'header.html' %}
+{% load static %}
+{% block content %}
+  <div class="container mt-5">
+    <h2 class="text-center mb-5">Add Services for Client</h2>
+    {% if msg %}
+      <p class="ps-5 text-warning fs-4">{{ msg }}</p>
+    {% endif %}
+    <form method="post" action="{% url 'add_clientservice' pk=client.pk %}" class="border p-4 rounded bg-light shadow-lg mb-5">
+      <p>{{ client.pk }}</p>
+      {% csrf_token %}
+
+      <!-- Client Information (Read-Only) -->
+      <div class="row mb-4">
+        <div class="mb-3 col-md-6">
+          <label class="form-label font-weight-bold">Client Name</label>
+          <p class="form-control-plaintext">{{ client.clientName }}</p>
+        </div>
+        <div class="mb-3 col-md-6">
+          <label class="form-label font-weight-bold">City</label>
+          <p class="form-control-plaintext">{{ client.city }}</p>
+        </div>
+      </div>
+
+      <div class="row mb-4">
+        <div class="mb-3 col-md-6">
+          <label class="form-label font-weight-bold">Mobile</label>
+          <p class="form-control-plaintext">{{ client.mobile }}</p>
+        </div>
+        <div class="mb-3 col-md-6">
+          <label class="form-label font-weight-bold">Second Mobile</label>
+          <p class="form-control-plaintext">{{ client.sec_mobile }}</p>
+        </div>
+      </div>
+
+      <!-- Services with Fees and Status -->
+      <div class="row mb-4">
+        <div class="col-12">
+          <h4 class="mb-3">Select Services</h4>
+          <div class="row">
+            {% for service in services %}
+              <div class="col-md-4 mb-3">
+                <div class="card border-light shadow-sm">
+                  <div class="card-body">
+                    <h5 class="card-title">{{ service.name }}</h5>
+
+                    <!-- Service Selection -->
+                    <div class="form-check mb-2">
+                      <input type="checkbox" class="form-check-input" id="service_{{ service.id }}" name="services" value="{{ service.id }}" />
+                      <label class="form-check-label" for="service_{{ service.id }}">Select this service</label>
+                    </div>
+
+                    <!-- Fee Input for Each Service (only if selected) -->
+                    <div class="service-fee-input" id="fee-input-{{ service.id }}" style="display:none;">
+                      <input type="number" class="form-control mb-2" name="fee_{{ service.id }}" placeholder="Enter Fee" step="0.01" />
+                    </div>
+
+                    <!-- Service Status Input for Each Service (only if selected) -->
+                    <div class="service-status-input" id="status-input-{{ service.id }}" style="display:none;">
+                      <label for="status_{{ service.id }}" class="form-label">Status</label>
+                      <select class="form-control" name="status_{{ service.id }}" required>
+                        {% for key, value in status_choices %}
+                          <option value="{{ key }}">{{ value }}</option>
+                        {% endfor %}
+                      </select>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="service-desc-input" id="desc-input-1" style="display: none;">
+                      <label for="desc_1" class="form-label">Description</label>
+                      <input type="text" class="form-control" id="desc_1" name="desc_1" placeholder="Enter Description" />
+                    </div>
+
+                    <!-- Billing Date Input for Each Service (only if selected) -->
+                    <div class="service-billing-date-input" id="billing-date-input-{{ service.id }}" style="display:none;">
+                      <label for="billing_date_{{ service.id }}" class="form-label">Billing Date</label>
+                      <input type="date" class="form-control" id="billing_date_{{ service.id }}" name="billing_date_{{ service.id }}" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <div class="row my-4">
+        <div class="col-12 text-center">
+          <button type="submit" class="btn btn-success w-25">Add Service</button>
+        </div>
+      </div>
+    </form>
+  </div>
+  <script src="{% static 'js/add_clientServ.js' %}"></script>
+{% endblock %}

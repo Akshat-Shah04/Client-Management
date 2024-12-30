@@ -1,4 +1,5 @@
 from django.db import models
+from datetime import date
 
 
 class Employee(models.Model):
@@ -13,7 +14,6 @@ class Employee(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CH, default="Active")
     createdAt = models.DateTimeField(auto_now_add=True)
     updatedAt = models.DateTimeField(auto_now=True)
-    # emp_aadhar = models.CharField(default="NA", blank=True, null=True, max_length=15)
     mobile = models.BigIntegerField(unique=True, default=1000100010)
     email = models.EmailField(unique=True)
     password = models.CharField(max_length=20, default="0000")
@@ -24,7 +24,6 @@ class Employee(models.Model):
 
 class Service(models.Model):
     name = models.CharField(max_length=100)
-    # price = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):
         return self.name
@@ -40,7 +39,7 @@ class Client(models.Model):
     clientName = models.CharField(max_length=60)
     status = models.CharField(choices=STATUS_CH, max_length=20, default="Active")
     mobile = models.CharField(max_length=15, unique=True)
-    sec_mobile = models.CharField(max_length=15, unique=True, blank=True, null=True)
+    sec_mobile = models.CharField(max_length=15, blank=True, null=True)
     city = models.CharField(max_length=30)
     email = models.EmailField(unique=True, blank=True, null=True)
     referredBy = models.CharField(max_length=50, default="NA")
@@ -50,11 +49,6 @@ class Client(models.Model):
 
     def __str__(self):
         return self.clientName
-
-    def total_paid(self):
-        # Calculate total amount paid by the client
-        payments = Payment.objects.filter(client=self)
-        return sum(payment.amount for payment in payments)
 
     def total_pending(self):
         # Calculate pending amount for the client
@@ -67,16 +61,29 @@ class Client(models.Model):
 class ClientService(models.Model):
     client = models.ForeignKey(Client, on_delete=models.CASCADE)
     service = models.ForeignKey(Service, on_delete=models.CASCADE)
+    SERV_STATUS = [
+        ("Partial Documents Submitted", "Partial Documents Submitted"),
+        ("Full Documents Submitted", "Full Documents Submitted"),
+        ("Not Started", "Not Started"),
+        ("In Progress", "In Progress"),
+        ("Completed", "Completed"),
+        ("Filed", "Filed"),
+    ]
+    status = models.CharField(
+        max_length=100, choices=SERV_STATUS, default="Not Started"
+    )
     fee = models.DecimalField(max_digits=10, decimal_places=2)
+    billing_date = models.DateField(default=date.today)
+    desc = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
-        return f"{self.client.clientName} - {self.service.name} - {self.fee}"
+        return f"{self.service.name} - {self.status} - {self.billing_date}"
 
 
-class Payment(models.Model):
-    client = models.ForeignKey(Client, on_delete=models.CASCADE)
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
-    payment_date = models.DateTimeField(auto_now_add=True)
+class Billing(models.Model):
+    clientService = models.ForeignKey(ClientService, on_delete=models.CASCADE)
+    fees = models.DecimalField(max_digits=10, decimal_places=2)
+    billing_date = models.DateField(default=date.today)
 
     def __str__(self):
-        return f"Payment of {self.amount} from {self.client.clientName} on {self.payment_date}"
+        return f"{self.clientService.client.clientName} - {self.clientService.service.name} - {self.clientService.service.billing_cycle} - {self.fees} - {self.billing_date}"
