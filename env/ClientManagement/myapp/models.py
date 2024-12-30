@@ -82,8 +82,15 @@ class ClientService(models.Model):
 
 class Billing(models.Model):
     clientService = models.ForeignKey(ClientService, on_delete=models.CASCADE)
-    fees = models.DecimalField(max_digits=10, decimal_places=2)
+    fees_recieved = models.DecimalField(max_digits=10, decimal_places=2)
     billing_date = models.DateField(default=date.today)
+    STATUS = [
+        ("Paid", "Paid"),
+        ("Unpaid", "Unpaid"),
+        ("Discounted", "Discounted"),
+        ("Partial", "Partial"),
+    ]
+    fee_status = models.CharField(max_length=50, choices=STATUS, blank=False, null=True)
 
     def __str__(self):
         return f"{self.clientService.client.clientName} - {self.clientService.service.name} - {self.clientService.service.billing_cycle} - {self.fees} - {self.billing_date}"
