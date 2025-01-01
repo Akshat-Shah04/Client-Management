@@ -43,12 +43,19 @@
                     {% endfor %}
                   </select>
                 </div>
-
+                <!-- Description -->
+                <div class="mb-3" id="desc-input-{{ service.id }}" style="">
+                  <label for="desc_{{ service.id }}" class="form-label">Description</label>
+                  <input type="text" class="form-control" id="desc_{{ service.id }}" name="desc_{{ service.id }}" value="desc_{{ service.id }}" placeholder="Enter Description" />
+                </div>
                 <!-- Billing Date -->
                 <div class="mb-3">
                   <label for="billing_date_{{ service.id }}" class="form-label">Billing Date:</label>
                   <input type="date" class="form-control" id="billing_date_{{ service.id }}" name="billing_date_{{ service.id }}" value="{{ service.billing_date|date:'Y-m-d' }}" />
                 </div>
+              </div>
+              <div class="col text-center mb-5">
+                <a class="btn btn-danger px-3 py-2" href="{% url 'delete_clientservice' pk=service.pk %}">Delete Services</a>
               </div>
             </div>
           </div>
@@ -56,9 +63,6 @@
       </div>
 
       <div class="row mt-4">
-        <div class="col text-center">
-          <button type="submit" class="btn btn-primary">Update Services</button>
-        </div>
         <div class="col text-center">
           <button type="submit" class="btn btn-primary">Update Services</button>
         </div>

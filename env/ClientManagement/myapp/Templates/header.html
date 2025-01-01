@@ -16,17 +16,27 @@
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav ms-auto">
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'dashboard' %}">Home</a>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="servicesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Services</a>
+              <ul class="dropdown-menu" aria-labelledby="servicesDropdown">
+                <li>
+                  <a class="dropdown-item" href="{% url 'add_service' %}">Add New Service</a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'view_service' %}">View Services</a>
+                </li>
+              </ul>
             </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'add_client' %}">Add a Client</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="{% url 'clients' %}">Clients</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="#">Bill Client</a>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="clientDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Clients</a>
+              <ul class="dropdown-menu" aria-labelledby="clientDropdown">
+                <li>
+                  <a class="dropdown-item" href="{% url 'add_client' %}">Add a Client</a>
+                </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'clients' %}">View Clients</a>
+                </li>
+              </ul>
             </li>
             {% if request.session.email %}
               <li class="nav-item">
@@ -41,6 +51,7 @@
         </div>
       </div>
     </nav>
+
     {% block content %}
 
     {% endblock %}

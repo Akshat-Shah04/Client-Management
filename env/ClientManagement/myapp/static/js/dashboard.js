@@ -10,4 +10,5 @@ function searchTable() {
         row.style.display = 'none'
       }
     })
-  }
+}
+  

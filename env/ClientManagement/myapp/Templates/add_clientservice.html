@@ -66,9 +66,9 @@
                     </div>
 
                     <!-- Description -->
-                    <div class="service-desc-input" id="desc-input-1" style="display: none;">
-                      <label for="desc_1" class="form-label">Description</label>
-                      <input type="text" class="form-control" id="desc_1" name="desc_1" placeholder="Enter Description" />
+                    <div class="service-desc-input" id="desc-input-{{ service.id }}" style="display: none;">
+                      <label for="desc_{{ service.id }}" class="form-label">Description</label>
+                      <input type="text" class="form-control" id="desc_{{ service.id }}" name="desc_{{ service.id }}" placeholder="Enter Description" />
                     </div>
 
                     <!-- Billing Date Input for Each Service (only if selected) -->

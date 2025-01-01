@@ -60,7 +60,7 @@
               <!-- Single Update Button for the Parent Row -->
               <td class="py-2">
                 <a href="{% url 'update_clientservice' pk=data.client.pk %}" class="btn btn-warning btn-sm">Update</a>
-                <a href="{% url 'view_client' pk=data.client.pk %}" class="btn btn-primary btn">View</a>
+                <a href="{% url 'view_client' pk=data.client.pk %}" class="btn btn-primary btn-sm px-3">View</a>
               </td>
             </tr>
           {% empty %}

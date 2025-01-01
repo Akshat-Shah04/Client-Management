@@ -1,9 +1,12 @@
 from django.shortcuts import render, redirect
-from .models import Employee, Client, Service, ClientService
+from .models import *
 from django.contrib import messages
 from django.shortcuts import render, get_object_or_404
 from datetime import date
-from django.http import HttpResponse
+from django.db.models import Sum
+from django.core.mail import send_mail
+from django.utils.timezone import now
+
 
 # Create your views here.
 
@@ -71,6 +74,11 @@ def login(request):
     else:
         # For GET requests
         return render(request, "login.html")
+
+
+def header(request):
+    client = Client.objects.all()
+    return render(request, "header.html", {"clients": client})
 
 
 def logout(request):
@@ -203,18 +211,20 @@ def add_clientservice(request, pk):
             service = get_object_or_404(Service, pk=service_id)
 
             fee = request.POST.get(f"fee_{service.id}")
+            desc = (
+                request.POST.get(f"desc_{service.id}") or "NA"
+            )  # Default to "NA" if not provided
             status = request.POST.get(f"status_{service.id}")
             billing_date = (
                 request.POST.get(f"billing_date_{service.id}") or date.today()
             )
-            if not fee or not status:
-                return HttpResponse("Please fill in all required fields.", status=400)
-
-            # Save client service with default billing date if not provided
+            print(desc)
+            # Save client service (Description is optional)
             ClientService.objects.create(
                 client=client,
                 service=service,
                 fee=fee,
+                desc=desc,
                 status=status,
                 billing_date=billing_date,
             )
@@ -228,10 +238,11 @@ def add_clientservice(request, pk):
     )
 
 
-def delete_clientSerivce(request, pk):
+def delete_clientservice(request, pk):
     try:
         ClientService.objects.filter(pk=pk).delete()
-        return redirect("dashboard")
+        print("Delete Successfull >>>> >>>>> >>>>>> >>>>")
+        return redirect("clients")
     except Exception as e:
         print(f">>>>> Error Occurred >>>>> Delete ClientService >>>>> {pk} >>>>> !!!")
         return redirect("dashboard")
@@ -254,7 +265,7 @@ def update_clientservice(request, pk):
                 request.POST.get(f"billing_date_{service.id}") or date.today()
             )
             print(">>>>>>>>Error 3>>>>>>>>>>>")
-
+            desc = request.POST.get(f"desc_{service.id}") or "NA"
             # Update service fields
             service.fee = float(fee) if fee else service.fee
             service.status = status
@@ -262,7 +273,7 @@ def update_clientservice(request, pk):
             print(">>>>>>>>>>>> Error 4 >>>>>>>>>>>>c")
             service.save()
             print(">>>>>>>>>>>> Error 5 >>>>>>>>>>>>")
-
+            print(desc)
         return redirect("clients")  # Redirect to the client list page
 
     return render(
@@ -280,8 +291,167 @@ def view_client(request, pk):
     client = get_object_or_404(Client, pk=pk)
     client_services = ClientService.objects.filter(client=client)
 
+    # Aggregate fees for billing summary
+    total_fees = client_services.aggregate(total_fees=Sum("fee"))["total_fees"] or 0
+    total_received = (
+        Billing.objects.filter(clientService__in=client_services).aggregate(
+            total_received=Sum("fees_recieved")
+        )["total_received"]
+        or 0
+    )
+    total_pending = total_fees - total_received
+
     context = {
         "client": client,
         "client_services": client_services,
+        "billing": Billing.objects.filter(clientService__in=client_services),
+        "total_fees": total_fees,
+        "total_received": total_received,
+        "total_pending": total_pending,
     }
     return render(request, "view_client.html", context)
+
+
+def add_service(request):
+    if request.method == "POST":
+        service = Service.objects.create(name=request.POST["name"])
+        return redirect("dashboard")
+    else:
+        service_list = Service.objects.all()
+        return render(request, "add_service.html", {"service_list": service_list})
+
+
+def view_service(request):
+    try:
+        service = Service.objects.all()
+        print(service)
+        return render(request, "view_service.html", {"service": service})
+    except Exception as e:
+        print("View Exception Occ >>>> ", e)
+        return render(request, "view_service.html")
+
+
+def delete_service(request, pk):
+    try:
+        service = Service.objects.get(pk=pk)
+        service.delete()
+        print("Service deleted >>>>>> ")
+        return redirect("dashboard")
+    except Exception as e:
+        print("Exception Occured >>> ", e)
+        return render(request, "view_service.html")
+
+
+# def generate_bill(request, pk):
+#     # Fetch the client object
+#     client = get_object_or_404(Client, id=pk)
+
+#     # Fetch all associated services
+#     client_services = ClientService.objects.filter(client=client)
+
+#     # Calculate total due (this will calculate based on client services)
+#     total_due = sum(service.fee - service.total_paid() for service in client_services)
+
+#     context = {
+#         "client": client,
+#         "client_services": client_services,
+#         "total_due": total_due,
+#         "billing_date": timezone.now().date(),
+#     }
+
+#     if request.method == "POST":
+#         # Handling the payment submission
+#         amount = request.POST.get("amount")
+#         payment_type = request.POST.get("payment_type")
+#         due_date = request.POST.get("due_date")
+
+#         # Process payment
+#         if amount:
+#             # Create Billing record for each service
+#             for service in client_services:
+#                 if payment_type == "partial" and float(amount) < service.fee:
+#                     # Store partial payment
+#                     Billing.objects.create(
+#                         clientService=service,
+#                         fees_recieved=amount,
+#                         fee_status="Partial",
+#                         billing_date=timezone.now().date(),
+#                     )
+#                     # Update outstanding fee
+#                     service.fee -= float(amount)
+#                     service.save()
+
+#                     # Send reminder email to admin if partial payment
+#                     send_payment_reminder_email(client, due_date)
+#                 else:
+#                     # Full payment
+#                     Billing.objects.create(
+#                         clientService=service,
+#                         fees_recieved=amount,
+#                         fee_status="Paid",
+#                         billing_date=timezone.now().date(),
+#                     )
+#                     # Mark the service as fully paid
+#                     service.paid = service.fee
+#                     service.save()
+
+#             return redirect("generate_bill", client_id=client.id)
+
+#     return render(request, "billing.html", context)
+
+
+def generate_bill(request, pk):
+    client = get_object_or_404(Client, pk=pk)
+    client_services = ClientService.objects.filter(client=client)
+
+    services_with_totals = []
+    for service in client_services:
+        total_received = (
+            service.billing_set.aggregate(total=Sum("fees_recieved"))["total"] or 0
+        )
+        outstanding_amount = service.fee - total_received
+        services_with_totals.append(
+            {
+                "service": service,
+                "total_received": total_received,
+                "outstanding_amount": outstanding_amount,
+            }
+        )
+
+    if request.method == "POST":
+        payment_data = {
+            "service_id": request.POST.get("service_id"),
+            "payment_amount": float(request.POST.get("payment_amount")),
+            "payment_type": request.POST.get("payment_type"),
+        }
+
+        # Process the payment
+        service = get_object_or_404(ClientService, id=payment_data["service_id"])
+        Billing.objects.create(
+            clientService=service,
+            fees_recieved=payment_data["payment_amount"],
+            billing_date=now().date(),
+            fee_status=(
+                "Partial" if payment_data["payment_amount"] < service.fee else "Paid"
+            ),
+            payment_type=payment_data["payment_type"],
+            outstanding_amt=max(
+                0, service.fee - (payment_data["payment_amount"] + total_received)
+            ),
+        )
+
+        return redirect("generate_bill", pk=client.id)
+
+    context = {
+        "client": client,
+        "services_with_totals": services_with_totals,
+    }
+    return render(request, "billing.html", context)
+
+
+def send_payment_reminder_email(client, due_date):
+    # Send reminder email to admin
+    subject = f"Payment Reminder for {client.clientName}"
+    message = f"Dear Sir, \n\nA partial payment was made by {client.clientName}. The remaining balance is due by {due_date}. \n\nPlease follow up with the client."
+    admin_email = "haresh9771@gmail.com"  # Replace with actual admin email
+    send_mail(subject, message, "no-reply@gmail.com", [admin_email])

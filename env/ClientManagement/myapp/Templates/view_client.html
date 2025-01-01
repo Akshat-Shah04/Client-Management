@@ -1,5 +1,6 @@
 {% extends 'header.html' %}
 {% load static %}
+{% load custom_filters %}
 {% block content %}
   <div class="container mt-4">
     <h1 class="text-center">Client Details</h1>
@@ -20,7 +21,7 @@
           <strong>City:</strong> {{ client.city }}
         </p>
         <p>
-          <strong>Address:</strong> {{ client.address }}
+          <strong>Created At:</strong> {{ client.createdAt|date:'d M Y' }}
         </p>
       </div>
     </div>
@@ -34,6 +35,9 @@
           <th>Status</th>
           <th>Billing Date</th>
           <th>Fee</th>
+          <th>Remarks</th>
+          <th>Fees Received</th>
+          <th>Fee Status</th>
         </tr>
       </thead>
       <tbody>
@@ -43,13 +47,40 @@
             <td>{{ service.status }}</td>
             <td>{{ service.billing_date }}</td>
             <td>{{ service.fee|floatformat:2 }}</td>
+
+            <td>{{ service.desc|default:'No remarks' }}</td>
+
+            <!-- Fetch Billing Info for Each Service -->
+            {% with billing_info=billing|get_billing_for_service:service.pk %}
+              <td>{{ billing_info.fees_recieved|default:'N/A' }}</td>
+              <td>{{ billing_info.fee_status|default:'N/A' }}</td>
+            {% endwith %}
           </tr>
         {% endfor %}
       </tbody>
     </table>
 
-    <div class="mt-3">
+    <div class="card mt-4">
+      <div class="card-header bg-info text-white">
+        <h3>Billing Summary</h3>
+      </div>
+      <div class="card-body">
+        <p>
+          <strong>Total Fees:</strong> ₹{{ total_fees|floatformat:2 }}
+        </p>
+        <p>
+          <strong>Total Fees Received:</strong> ₹{{ total_received|floatformat:2 }}
+        </p>
+        <p>
+          <strong>Pending Fees:</strong> ₹{{ total_pending|floatformat:2 }}
+        </p>
+      </div>
+    </div>
+
+    <div class="btn-group my-3">
       <a href="{% url 'clients' %}" class="btn btn-secondary">Back to Clients</a>
+      <a href="{% url 'dashboard' %}" class="btn btn-dark">Back to Dashboard</a>
+      <a href="{% url 'generate_bill' pk=3 %}" class="btn btn-success">Create Bill</a>
     </div>
   </div>
 {% endblock %}

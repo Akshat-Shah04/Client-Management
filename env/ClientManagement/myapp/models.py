@@ -79,6 +79,10 @@ class ClientService(models.Model):
     def __str__(self):
         return f"{self.service.name} - {self.status} - {self.billing_date}"
 
+    # def total_paid(self):
+    #     # Sum up all the fees_received for the related Billing records
+    #     return sum(billing.fees_recieved for billing in self.billing_set.all())
+
 
 class Billing(models.Model):
     clientService = models.ForeignKey(ClientService, on_delete=models.CASCADE)
@@ -90,7 +94,23 @@ class Billing(models.Model):
         ("Discounted", "Discounted"),
         ("Partial", "Partial"),
     ]
-    fee_status = models.CharField(max_length=50, choices=STATUS, blank=False, null=True)
+    fee_status = models.CharField(
+        max_length=50, choices=STATUS, blank=False, default="Unpaid", null=True
+    )
+    PAY = [
+        ("UPI", "UPI"),
+        ("Cash", "Cash"),
+        ("Check", "Check"),
+        ("Netbanking", "Netbanking"),
+    ]
+    payment_type = models.CharField(choices=PAY, max_length=20, blank=True)
+    outstanding_amt = models.IntegerField(blank=True, default=0)
 
     def __str__(self):
-        return f"{self.clientService.client.clientName} - {self.clientService.service.name} - {self.clientService.service.billing_cycle} - {self.fees} - {self.billing_date}"
+        return (
+            f"{self.clientService.client.clientName} - "
+            f"{self.clientService.service.name} - "
+            f"{self.clientService.service.billing_cycle} - "
+            f"{self.fees_recieved} - "
+            f"{self.billing_date}"
+        )

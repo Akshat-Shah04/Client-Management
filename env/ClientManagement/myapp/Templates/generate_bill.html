@@ -1,0 +1,102 @@
+{% extends 'header.html' %}
+{% load static %}
+{% block content %}
+  <div class="container mt-5">
+    <h1>Billing Information for {{ client.clientName }}</h1>
+    <hr />
+
+    <!-- Client Details -->
+    <div class="mb-4">
+      <h4>Client Details</h4>
+      <p>
+        <strong>Name:</strong> {{ client.clientName }}
+      </p>
+      <p>
+        <strong>Mobile:</strong> {{ client.mobile }}
+      </p>
+      <p>
+        <strong>Email:</strong> {{ client.email }}
+      </p>
+      <p>
+        <strong>City:</strong> {{ client.city }}
+      </p>
+    </div>
+
+    <!-- Service and Billing Details -->
+    <div class="mb-4">
+      <h4>Services</h4>
+      <table>
+        <thead>
+          <tr>
+            <th>Service Name</th>
+            <th>Status</th>
+            <th>Total Fee</th>
+            <th>Total Paid</th>
+            <th>Outstanding Amount</th>
+            <th>Billing Date</th>
+            <th>Make Payment</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in services_with_totals %}
+            <tr>
+              <td>{{ item.service.service.name }}</td>
+              <td>{{ item.service.status }}</td>
+              <td>{{ item.service.fee }}</td>
+              <td>{{ item.total_received }}</td>
+              <td>{{ item.outstanding_amount }}</td>
+              <td>{{ item.service.billing_date }}</td>
+              <td>
+                <form method="post">
+                  {% csrf_token %}
+                  <input type="hidden" name="service_id" value="{{ item.service.id }}" />
+                  <input type="number" step="0.01" name="payment_amount" placeholder="Enter amount" required />
+                  <select name="payment_type" required>
+                    <option value="UPI">UPI</option>
+                    <option value="Cash">Cash</option>
+                    <option value="Check">Check</option>
+                    <option value="Netbanking">Netbanking</option>
+                  </select>
+                  <button type="submit">Pay</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Payment Form -->
+    <div class="mb-4">
+      <h4>Make a Payment</h4>
+      <form method="post" action="{% url 'generate_bill' client.pk %}">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label for="amount" class="form-label">Amount</label>
+          <input type="number" step="0.01" name="amount" id="amount" class="form-control" required />
+        </div>
+
+        <div class="mb-3">
+          <label for="payment_type" class="form-label">Payment Method</label>
+          <select name="payment_type" id="payment_type" class="form-control" required>
+            <option value="UPI">UPI</option>
+            <option value="Cash">Cash</option>
+            <option value="Check">Check</option>
+            <option value="Netbanking">Netbanking</option>
+          </select>
+        </div>
+
+        <div class="mb-3">
+          <label for="due_date" class="form-label">Due Date (if Partial Payment)</label>
+          <input type="date" name="due_date" id="due_date" class="form-control" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Submit Payment</button>
+      </form>
+    </div>
+
+    <div class="mt-4">
+      <a href="{% url 'clients' %}" class="btn btn-secondary">Back to Client List</a>
+    </div>
+  </div>
+{% endblock %}

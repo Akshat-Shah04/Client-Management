@@ -24,6 +24,9 @@ urlpatterns = [
     path("login/", views.login, name="login"),
     path("logout/", views.logout, name="logout"),
     path("dashboard/", views.dashboard, name="dashboard"),
+    path("add_service/", views.add_service, name="add_service"),
+    path("view_service/", views.view_service, name="view_service"),
+    path("delete_service/<int:pk>", views.delete_service, name="delete_service"),
     path("add_client/", views.add_client, name="add_client"),
     path("update_client/<int:pk>", views.update_client, name="update_client"),
     path("delete_client/<int:pk>", views.delete_client, name="delete_client"),
@@ -36,5 +39,11 @@ urlpatterns = [
         views.update_clientservice,
         name="update_clientservice",
     ),
+    path(
+        "delete_clientservice/<int:pk>/",
+        views.delete_clientservice,
+        name="delete_clientservice",
+    ),
     path("view_client/<int:pk>/", views.view_client, name="view_client"),
+    path("generate_bill/<int:pk>/", views.generate_bill, name="generate_bill"),
 ]
