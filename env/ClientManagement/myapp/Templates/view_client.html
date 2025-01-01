@@ -80,7 +80,7 @@
     <div class="btn-group my-3">
       <a href="{% url 'clients' %}" class="btn btn-secondary">Back to Clients</a>
       <a href="{% url 'dashboard' %}" class="btn btn-dark">Back to Dashboard</a>
-      <a href="{% url 'generate_bill' pk=3 %}" class="btn btn-success">Create Bill</a>
+      <a href="{% url 'generate_bill' pk=client.id %}" class="btn btn-success">Create Bill</a>
     </div>
   </div>
 {% endblock %}

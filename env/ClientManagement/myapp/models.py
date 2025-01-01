@@ -110,7 +110,7 @@ class Billing(models.Model):
         return (
             f"{self.clientService.client.clientName} - "
             f"{self.clientService.service.name} - "
-            f"{self.clientService.service.billing_cycle} - "
+            # f"{self.clientService.service.billing_cycle} - "
             f"{self.fees_recieved} - "
             f"{self.billing_date}"
         )

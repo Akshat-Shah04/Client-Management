@@ -2,101 +2,95 @@
 {% load static %}
 {% block content %}
   <div class="container mt-5">
-    <h1>Billing Information for {{ client.clientName }}</h1>
-    <hr />
+    <h1 class="text-center mb-4 text-primary">Billing Information for {{ client.clientName }}</h1>
+    <hr class="mb-4" />
 
     <!-- Client Details -->
-    <div class="mb-4">
-      <h4>Client Details</h4>
-      <p>
-        <strong>Name:</strong> {{ client.clientName }}
-      </p>
-      <p>
-        <strong>Mobile:</strong> {{ client.mobile }}
-      </p>
-      <p>
-        <strong>Email:</strong> {{ client.email }}
-      </p>
-      <p>
-        <strong>City:</strong> {{ client.city }}
-      </p>
+    <div class="card mb-4 shadow-lg">
+      <div class="card-header bg-primary text-white">
+        <h4 class="mb-0">Client Details</h4>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6">
+            <p>
+              <strong>Name:</strong> {{ client.clientName }}
+            </p>
+            <p>
+              <strong>Mobile:</strong> {{ client.mobile }}
+            </p>
+          </div>
+          <div class="col-md-6">
+            <p>
+              <strong>Email:</strong> {{ client.email }}
+            </p>
+            <p>
+              <strong>City:</strong> {{ client.city }}
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Service and Billing Details -->
-    <div class="mb-4">
-      <h4>Services</h4>
-      <table>
-        <thead>
-          <tr>
-            <th>Service Name</th>
-            <th>Status</th>
-            <th>Total Fee</th>
-            <th>Total Paid</th>
-            <th>Outstanding Amount</th>
-            <th>Billing Date</th>
-            <th>Make Payment</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for item in services_with_totals %}
-            <tr>
-              <td>{{ item.service.service.name }}</td>
-              <td>{{ item.service.status }}</td>
-              <td>{{ item.service.fee }}</td>
-              <td>{{ item.total_received }}</td>
-              <td>{{ item.outstanding_amount }}</td>
-              <td>{{ item.service.billing_date }}</td>
-              <td>
-                <form method="post">
-                  {% csrf_token %}
-                  <input type="hidden" name="service_id" value="{{ item.service.id }}" />
-                  <input type="number" step="0.01" name="payment_amount" placeholder="Enter amount" required />
-                  <select name="payment_type" required>
-                    <option value="UPI">UPI</option>
-                    <option value="Cash">Cash</option>
-                    <option value="Check">Check</option>
-                    <option value="Netbanking">Netbanking</option>
-                  </select>
-                  <button type="submit">Pay</button>
-                </form>
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+    <div class="card shadow-lg">
+      <div class="card-header bg-success text-white">
+        <h4 class="mb-0">Services</h4>
+      </div>
+      <div class="card-body">
+        <form method="post" action="{% url 'generate_bill' client.id %}">
+          {% csrf_token %}
+          <table class="table table-bordered table-striped">
+            <thead class="thead-dark">
+              <tr>
+                <th>Service Name</th>
+                <th>Status</th>
+                <th>Total Fee</th>
+                <th>Total Paid</th>
+                <th>Outstanding Amount</th>
+                <th>Payment Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in services_with_totals %}
+                <tr>
+                  <td>{{ item.service.service.name }}</td>
+                  <td>{{ item.service.status }}</td>
+                  <td>{{ item.service.fee }}</td>
+                  <td>{{ item.total_received }}</td>
+                  <td>{{ item.outstanding_amount }}</td>
+                  <td>
+                    <input type="hidden" name="service_id_{{ client.id }}" value="{{ item.service.id }}" />
+                    <input type="number" name="payment_amount_{{ client.id }}" placeholder="Enter amount" class="form-control" required />
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+
+          <div class="mt-4">
+            <label for="payment_type"><strong>Payment Type:</strong></label>
+            <select id="payment_type" name="payment_type" class="mt-1 form-control" required>
+              <option value="UPI">UPI</option>
+              <option value="Cash">Cash</option>
+              <option value="Check">Check</option>
+              <option value="Netbanking">Netbanking</option>
+            </select>
+          </div>
+
+          <div class="mt-4 float-end">
+            <button type="submit" class="btn btn-primary btn-block">Submit Payment</button>
+          </div>
+        </form>
+        <div class="float-end">
+          <a href="{% url 'print_bill' %}" class="btn btn-danger">Print Bill</a>
+        </div>
+      </div>
     </div>
 
-    <!-- Payment Form -->
-    <div class="mb-4">
-      <h4>Make a Payment</h4>
-      <form method="post" action="{% url 'generate_bill' client.pk %}">
-        {% csrf_token %}
-        <div class="mb-3">
-          <label for="amount" class="form-label">Amount</label>
-          <input type="number" step="0.01" name="amount" id="amount" class="form-control" required />
-        </div>
-
-        <div class="mb-3">
-          <label for="payment_type" class="form-label">Payment Method</label>
-          <select name="payment_type" id="payment_type" class="form-control" required>
-            <option value="UPI">UPI</option>
-            <option value="Cash">Cash</option>
-            <option value="Check">Check</option>
-            <option value="Netbanking">Netbanking</option>
-          </select>
-        </div>
-
-        <div class="mb-3">
-          <label for="due_date" class="form-label">Due Date (if Partial Payment)</label>
-          <input type="date" name="due_date" id="due_date" class="form-control" />
-        </div>
-
-        <button type="submit" class="btn btn-primary">Submit Payment</button>
-      </form>
-    </div>
-
-    <div class="mt-4">
+    <div class="my-5 text-center gap-2">
       <a href="{% url 'clients' %}" class="btn btn-secondary">Back to Client List</a>
+      <a href="{% url 'dashboard' %}" class="btn btn-secondary">Back to Dashboard</a>
     </div>
   </div>
 {% endblock %}

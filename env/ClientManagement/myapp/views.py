@@ -6,7 +6,7 @@ from datetime import date
 from django.db.models import Sum
 from django.core.mail import send_mail
 from django.utils.timezone import now
-
+from decimal import Decimal
 
 # Create your views here.
 
@@ -343,73 +343,114 @@ def delete_service(request, pk):
 
 
 # def generate_bill(request, pk):
-#     # Fetch the client object
-#     client = get_object_or_404(Client, id=pk)
+#     client = get_object_or_404(Client, pk=pk)
+#     client_services = ClientService.objects.filter(client=client, status="Completed")
 
-#     # Fetch all associated services
-#     client_services = ClientService.objects.filter(client=client)
+#     # Check if there are any services for the client
+#     if not client_services:
+#         messages.error(request, "No completed services found for this client.")
+#         return redirect(
+#             "clients"
+#         )  # Redirect to the client list or another appropriate page
 
-#     # Calculate total due (this will calculate based on client services)
-#     total_due = sum(service.fee - service.total_paid() for service in client_services)
+#     services_with_totals = []
+#     for service in client_services:
+#         total_received = (
+#             service.billing_set.aggregate(total=Sum("fees_recieved"))["total"] or 0
+#         )
+#         outstanding_amount = service.fee - total_received
+#         services_with_totals.append(
+#             {
+#                 "service": service,
+#                 "total_received": total_received,
+#                 "outstanding_amount": outstanding_amount,
+#             }
+#         )
+
+#     if request.method == "POST":
+#         # Debug: Print the POST data received
+#         print("Received POST data:")
+#         print(f"Service IDs: {request.POST.getlist(f'service_id_{client.id}')}")
+#         print(f"Payment Amounts: {request.POST.getlist(f'payment_amount_{client.id}')}")
+#         print(f"Payment Type: {request.POST.get('payment_type')}")
+
+#         service_ids = request.POST.getlist(f"service_id_{client.id}")
+#         payment_amounts = request.POST.getlist(f"payment_amount_{client.id}")
+#         payment_type = request.POST.get("payment_type")
+
+#         # Check if the form is correctly submitted
+#         if not service_ids or not payment_amounts or not payment_type:
+#             messages.error(request, "Please fill out all fields.")
+#             return redirect("generate_bill", pk=client.id)
+
+#         for service_id, payment_amount in zip(service_ids, payment_amounts):
+#             cservice = get_object_or_404(ClientService, id=service_id)
+#             payment_amount = Decimal(payment_amount)
+#             total_received = (
+#                 cservice.billing_set.aggregate(total=Sum("fees_recieved"))["total"] or 0
+#             )
+
+#             # Debug: Print the total received before creating the billing entry
+#             print(
+#                 f"Total received for service {cservice.service.name}: {total_received}"
+#             )
+
+#             # Ensure the payment amount is positive
+#             if payment_amount <= 0:
+#                 messages.error(
+#                     request,
+#                     f"Invalid payment amount for service: {cservice.service.name}",
+#                 )
+#                 continue  # Skip this payment if it's invalid
+
+#             # Create a new Billing record
+#             print(
+#                 f"Creating billing record for service {cservice.service.name} with payment amount: {payment_amount}"
+#             )
+#             total_received = Decimal(total_received)
+#             Billing.objects.create(
+#                 clientService=cservice,
+#                 fees_recieved=Decimal(payment_amount),
+#                 billing_date=now().date(),
+#                 fee_status=(
+#                     "Partial"
+#                     if payment_amount + total_received < cservice.fee
+#                     else "Paid"
+#                 ),
+#                 payment_type=payment_type,
+#                 outstanding_amt=max(
+#                     Decimal(0), cservice.fee - (payment_amount + total_received)
+#                 ),
+#             )
+
+#         messages.success(request, "Payment successfully recorded!")
+#         return redirect("generate_bill", pk=client.id)
 
 #     context = {
 #         "client": client,
-#         "client_services": client_services,
-#         "total_due": total_due,
-#         "billing_date": timezone.now().date(),
+#         "services_with_totals": services_with_totals,
 #     }
-
-#     if request.method == "POST":
-#         # Handling the payment submission
-#         amount = request.POST.get("amount")
-#         payment_type = request.POST.get("payment_type")
-#         due_date = request.POST.get("due_date")
-
-#         # Process payment
-#         if amount:
-#             # Create Billing record for each service
-#             for service in client_services:
-#                 if payment_type == "partial" and float(amount) < service.fee:
-#                     # Store partial payment
-#                     Billing.objects.create(
-#                         clientService=service,
-#                         fees_recieved=amount,
-#                         fee_status="Partial",
-#                         billing_date=timezone.now().date(),
-#                     )
-#                     # Update outstanding fee
-#                     service.fee -= float(amount)
-#                     service.save()
-
-#                     # Send reminder email to admin if partial payment
-#                     send_payment_reminder_email(client, due_date)
-#                 else:
-#                     # Full payment
-#                     Billing.objects.create(
-#                         clientService=service,
-#                         fees_recieved=amount,
-#                         fee_status="Paid",
-#                         billing_date=timezone.now().date(),
-#                     )
-#                     # Mark the service as fully paid
-#                     service.paid = service.fee
-#                     service.save()
-
-#             return redirect("generate_bill", client_id=client.id)
-
-#     return render(request, "billing.html", context)
+#     return render(request, "generate_bill.html", context)
 
 
 def generate_bill(request, pk):
     client = get_object_or_404(Client, pk=pk)
-    client_services = ClientService.objects.filter(client=client)
+    client_services = ClientService.objects.filter(client=client, status="Completed")
+
+    # Check if there are any services for the client
+    if not client_services:
+        messages.error(request, "No completed services found for this client.")
+        return redirect(
+            "clients"
+        )  # Redirect to the client list or another appropriate page
 
     services_with_totals = []
     for service in client_services:
+        # Calculate the total received amount for the service
         total_received = (
             service.billing_set.aggregate(total=Sum("fees_recieved"))["total"] or 0
         )
-        outstanding_amount = service.fee - total_received
+        outstanding_amount = service.fee - Decimal(total_received)
         services_with_totals.append(
             {
                 "service": service,
@@ -419,34 +460,62 @@ def generate_bill(request, pk):
         )
 
     if request.method == "POST":
-        payment_data = {
-            "service_id": request.POST.get("service_id"),
-            "payment_amount": float(request.POST.get("payment_amount")),
-            "payment_type": request.POST.get("payment_type"),
-        }
+        # Debug: Print the POST data received
+        print("Received POST data:")
+        print(f"Service IDs: {request.POST.getlist(f'service_id_{client.id}')}")
+        print(f"Payment Amounts: {request.POST.getlist(f'payment_amount_{client.id}')}")
+        print(f"Payment Type: {request.POST.get('payment_type')}")
 
-        # Process the payment
-        service = get_object_or_404(ClientService, id=payment_data["service_id"])
-        Billing.objects.create(
-            clientService=service,
-            fees_recieved=payment_data["payment_amount"],
-            billing_date=now().date(),
-            fee_status=(
-                "Partial" if payment_data["payment_amount"] < service.fee else "Paid"
-            ),
-            payment_type=payment_data["payment_type"],
-            outstanding_amt=max(
-                0, service.fee - (payment_data["payment_amount"] + total_received)
-            ),
-        )
+        service_ids = request.POST.getlist(f"service_id_{client.id}")
+        payment_amounts = request.POST.getlist(f"payment_amount_{client.id}")
+        payment_type = request.POST.get("payment_type")
 
+        # Check if the form is correctly submitted
+        if not service_ids or not payment_amounts or not payment_type:
+            messages.error(request, "Please fill out all fields.")
+            return redirect("generate_bill", pk=client.id)
+
+        for service_id, payment_amount in zip(service_ids, payment_amounts):
+            cservice = get_object_or_404(ClientService, id=service_id)
+            payment_amount = Decimal(payment_amount)
+
+            # Calculate total received before making the payment entry
+            total_received = (
+                cservice.billing_set.aggregate(total=Sum("fees_recieved"))["total"] or 0
+            )
+
+            # Ensure the payment amount is positive
+            if payment_amount <= 0:
+                messages.error(
+                    request,
+                    f"Invalid payment amount for service: {cservice.service.name}",
+                )
+                continue  # Skip this payment if it's invalid
+
+            # Create a new Billing record
+            Billing.objects.create(
+                clientService=cservice,
+                fees_recieved=payment_amount,
+                billing_date=now().date(),
+                fee_status=(
+                    "Partial"
+                    if (payment_amount + total_received) < cservice.fee
+                    else "Paid"
+                ),
+                payment_type=payment_type,
+                outstanding_amt=max(
+                    Decimal(0), cservice.fee - (payment_amount + total_received)
+                ),
+            )
+
+        messages.success(request, "Payment successfully recorded!")
         return redirect("generate_bill", pk=client.id)
 
     context = {
         "client": client,
         "services_with_totals": services_with_totals,
     }
-    return render(request, "billing.html", context)
+    return render(request, "generate_bill.html", context)
 
 
 def send_payment_reminder_email(client, due_date):
