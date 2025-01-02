@@ -46,4 +46,6 @@ urlpatterns = [
     ),
     path("view_client/<int:pk>/", views.view_client, name="view_client"),
     path("generate_bill/<int:pk>/", views.generate_bill, name="generate_bill"),
+    path("print_bill/<int:pk>/", views.print_bill, name="print_bill"),
+    path("billing_list/", views.billing_list, name="billing_list"),
 ]

@@ -7,6 +7,11 @@ from django.db.models import Sum
 from django.core.mail import send_mail
 from django.utils.timezone import now
 from decimal import Decimal
+from io import BytesIO
+from django.template.loader import get_template
+from xhtml2pdf import pisa
+from django.http import HttpResponse
+
 
 # Create your views here.
 
@@ -435,7 +440,9 @@ def delete_service(request, pk):
 
 def generate_bill(request, pk):
     client = get_object_or_404(Client, pk=pk)
-    client_services = ClientService.objects.filter(client=client, status="Completed")
+    client_services = ClientService.objects.filter(
+        client=client, status__in=["Completed", "Filed"]
+    )
 
     # Check if there are any services for the client
     if not client_services:
@@ -524,3 +531,67 @@ def send_payment_reminder_email(client, due_date):
     message = f"Dear Sir, \n\nA partial payment was made by {client.clientName}. The remaining balance is due by {due_date}. \n\nPlease follow up with the client."
     admin_email = "haresh9771@gmail.com"  # Replace with actual admin email
     send_mail(subject, message, "no-reply@gmail.com", [admin_email])
+
+
+def print_bill(request, pk):
+    #     # Fetch client and service details
+    #     client = Client.objects.get(pk=pk)
+    #     services_with_totals = []
+
+    #     for service in client.clientservice_set.all():
+    #         # total_received = sum(
+    #             # amount for payment in service.payment_set.all()
+    #         # )  # Ass//uming payments are linked to services
+    #         outstanding_amount = service.fee - total_received
+    #         services_with_totals.append(
+    #             {
+    #                 "service": service,
+    #                 "total_received": total_received,
+    #                 "outstanding_amount": outstanding_amount,
+    #             }
+    #         )
+
+    #     # Create context for the bill
+    #     context = {
+    #         "client": client,
+    #         "services_with_totals": services_with_totals,
+    #     }
+
+    #     # Render the bill as HTML
+    #     template = get_template("print_bill.html")
+    #     html = template.render(context)
+
+    #     # Convert HTML to PDF (using xhtml2pdf)
+    #     result = BytesIO()
+    #     pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), result)
+
+    #     if not pdf.err:
+    #         response = HttpResponse(result.getvalue(), content_type="application/pdf")
+    #         response["Content-Disposition"] = 'attachment; filename="bill_{}.pdf"'.format(
+    #             client.clientName
+    #         )
+    return redirect("dashboard.html")
+
+
+# else:
+# return HttpResponse("Error rendering PDF")
+
+from django.db.models import Q
+
+
+def billing_list(request):
+    # Query all billing records in descending order of billing_date
+    billings = Billing.objects.all().order_by("-billing_date")
+    query = request.GET.get("q", "")
+
+    if query:
+        # Filter by client name or billing date
+        billings = billings.filter(
+            Q(clientService__client__clientName__icontains=query)
+            | Q(billing_date__icontains=query)
+        )
+    context = {
+        "billings": billings,
+        "query": query,
+    }
+    return render(request, "billing_list.html", context)

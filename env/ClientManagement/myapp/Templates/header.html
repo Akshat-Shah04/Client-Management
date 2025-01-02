@@ -36,6 +36,9 @@
                 <li>
                   <a class="dropdown-item" href="{% url 'clients' %}">View Clients</a>
                 </li>
+                <li>
+                  <a class="dropdown-item" href="{% url 'billing_list' %}">View Billings</a>
+                </li>
               </ul>
             </li>
             {% if request.session.email %}

@@ -1,0 +1,52 @@
+{% extends 'header.html' %}
+{% load static %}
+{% block content %}
+  <div class="container mt-5">
+    <h1 class="text-center mb-4">All Billings</h1>
+    <!-- Search Form -->
+    <form method="GET" action="" class="mb-4">
+      <div class="row">
+        <div class="col-md-10">
+          <input type="text" name="q" class="form-control" placeholder="Search by client name or billing date (YYYY-MM-DD)" value="{{ query|default:'' }}" />
+        </div>
+        <div class="col-md-2">
+          <button type="submit" class="btn btn-primary w-100">Search</button>
+        </div>
+      </div>
+    </form>
+    <table class="table table-bordered table-striped">
+      <thead class="table-dark">
+        <tr>
+          <th>#</th>
+          <th>Billing Date</th>
+          <th>Client</th>
+          <th>Service</th>
+          <th>Service Dates</th>
+          <th>Fees Received</th>
+          <th>Outstanding Amount</th>
+          <th>Fee Status</th>
+          <th>Payment Type</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for billing in billings %}   
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ billing.billing_date }}</td>
+            <td>{{ billing.clientService.client.clientName }}</td>
+            <td>{{ billing.clientService.service.name }}</td>
+            <td>{{ billing.clientService.billing_date }}</td>
+            <td>{{ billing.fees_recieved }}</td>
+            <td>{{ billing.outstanding_amt }}</td>
+            <td>{{ billing.fee_status }}</td>
+            <td>{{ billing.payment_type }}</td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="8" class="text-center">No billing records found.</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}
