@@ -7,7 +7,7 @@ call .\env\Scripts\activate
 cd env\ClientManagement
 
 :: Apply migrations and start the Django server
-pip install xhtml2pdf
+:: pip install -r requirements.txt
 
 python manage.py makemigrations
 python manage.py migrate
