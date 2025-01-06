@@ -1,0 +1,31 @@
+{% extends 'header.html' %}
+{% load static %}
+{% block content %}
+  <div class="container my-5">
+    <h2 class="text-center">Assign Task</h2>
+    <form method="POST">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label for="title" class="form-label">Task Title</label>
+        <input type="text" class="form-control" id="title" name="title" required />
+      </div>
+      <div class="mb-3">
+        <label for="description" class="form-label">Description</label>
+        <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
+      </div>
+      <div class="mb-3">
+        <label for="assigned_to" class="form-label">Assign To</label>
+        <select class="form-select" id="assigned_to" name="assigned_to" required>
+          {% for employee in employees %}
+            <option value="{{ employee.id }}">{{ employee.emp_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="mb-3">
+        <label for="due_date" class="form-label">Due Date</label>
+        <input type="date" class="form-control" id="due_date" name="due_date" required />
+      </div>
+      <button type="submit" class="btn btn-primary">Assign Task</button>
+    </form>
+  </div>
+{% endblock %}

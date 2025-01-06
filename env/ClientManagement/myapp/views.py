@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.shortcuts import render, redirect
 from .models import *
 from django.contrib import messages
@@ -5,12 +6,14 @@ from django.shortcuts import render, get_object_or_404
 from datetime import date
 from django.db.models import Sum
 from django.core.mail import send_mail
+from django.core.paginator import Paginator
 from django.utils.timezone import now
 from decimal import Decimal
-from io import BytesIO
-from django.template.loader import get_template
-from xhtml2pdf import pisa
-from django.http import HttpResponse
+
+# from io import BytesIO
+# from django.template.loader import get_template
+# from xhtml2pdf import pisa
+# from django.http import HttpResponse
 
 
 # Create your views here.
@@ -64,6 +67,7 @@ def login(request):
             if employee.password == request.POST["password"]:
                 request.session["email"] = employee.email
                 request.session["emp_name"] = employee.emp_name
+                request.session["position"] = employee.position
                 print("Login Is Successful")
                 return render(request, "dashboard.html")  # Redirects to dashboard
             else:
@@ -347,97 +351,6 @@ def delete_service(request, pk):
         return render(request, "view_service.html")
 
 
-# def generate_bill(request, pk):
-#     client = get_object_or_404(Client, pk=pk)
-#     client_services = ClientService.objects.filter(client=client, status="Completed")
-
-#     # Check if there are any services for the client
-#     if not client_services:
-#         messages.error(request, "No completed services found for this client.")
-#         return redirect(
-#             "clients"
-#         )  # Redirect to the client list or another appropriate page
-
-#     services_with_totals = []
-#     for service in client_services:
-#         total_received = (
-#             service.billing_set.aggregate(total=Sum("fees_recieved"))["total"] or 0
-#         )
-#         outstanding_amount = service.fee - total_received
-#         services_with_totals.append(
-#             {
-#                 "service": service,
-#                 "total_received": total_received,
-#                 "outstanding_amount": outstanding_amount,
-#             }
-#         )
-
-#     if request.method == "POST":
-#         # Debug: Print the POST data received
-#         print("Received POST data:")
-#         print(f"Service IDs: {request.POST.getlist(f'service_id_{client.id}')}")
-#         print(f"Payment Amounts: {request.POST.getlist(f'payment_amount_{client.id}')}")
-#         print(f"Payment Type: {request.POST.get('payment_type')}")
-
-#         service_ids = request.POST.getlist(f"service_id_{client.id}")
-#         payment_amounts = request.POST.getlist(f"payment_amount_{client.id}")
-#         payment_type = request.POST.get("payment_type")
-
-#         # Check if the form is correctly submitted
-#         if not service_ids or not payment_amounts or not payment_type:
-#             messages.error(request, "Please fill out all fields.")
-#             return redirect("generate_bill", pk=client.id)
-
-#         for service_id, payment_amount in zip(service_ids, payment_amounts):
-#             cservice = get_object_or_404(ClientService, id=service_id)
-#             payment_amount = Decimal(payment_amount)
-#             total_received = (
-#                 cservice.billing_set.aggregate(total=Sum("fees_recieved"))["total"] or 0
-#             )
-
-#             # Debug: Print the total received before creating the billing entry
-#             print(
-#                 f"Total received for service {cservice.service.name}: {total_received}"
-#             )
-
-#             # Ensure the payment amount is positive
-#             if payment_amount <= 0:
-#                 messages.error(
-#                     request,
-#                     f"Invalid payment amount for service: {cservice.service.name}",
-#                 )
-#                 continue  # Skip this payment if it's invalid
-
-#             # Create a new Billing record
-#             print(
-#                 f"Creating billing record for service {cservice.service.name} with payment amount: {payment_amount}"
-#             )
-#             total_received = Decimal(total_received)
-#             Billing.objects.create(
-#                 clientService=cservice,
-#                 fees_recieved=Decimal(payment_amount),
-#                 billing_date=now().date(),
-#                 fee_status=(
-#                     "Partial"
-#                     if payment_amount + total_received < cservice.fee
-#                     else "Paid"
-#                 ),
-#                 payment_type=payment_type,
-#                 outstanding_amt=max(
-#                     Decimal(0), cservice.fee - (payment_amount + total_received)
-#                 ),
-#             )
-
-#         messages.success(request, "Payment successfully recorded!")
-#         return redirect("generate_bill", pk=client.id)
-
-#     context = {
-#         "client": client,
-#         "services_with_totals": services_with_totals,
-#     }
-#     return render(request, "generate_bill.html", context)
-
-
 def generate_bill(request, pk):
     client = get_object_or_404(Client, pk=pk)
     client_services = ClientService.objects.filter(
@@ -533,50 +446,40 @@ def send_payment_reminder_email(client, due_date):
     send_mail(subject, message, "no-reply@gmail.com", [admin_email])
 
 
-def print_bill(request, pk):
-    #     # Fetch client and service details
-    #     client = Client.objects.get(pk=pk)
-    #     services_with_totals = []
-
-    #     for service in client.clientservice_set.all():
-    #         # total_received = sum(
-    #             # amount for payment in service.payment_set.all()
-    #         # )  # Ass//uming payments are linked to services
-    #         outstanding_amount = service.fee - total_received
-    #         services_with_totals.append(
-    #             {
-    #                 "service": service,
-    #                 "total_received": total_received,
-    #                 "outstanding_amount": outstanding_amount,
-    #             }
-    #         )
-
-    #     # Create context for the bill
-    #     context = {
-    #         "client": client,
-    #         "services_with_totals": services_with_totals,
-    #     }
-
-    #     # Render the bill as HTML
-    #     template = get_template("print_bill.html")
-    #     html = template.render(context)
-
-    #     # Convert HTML to PDF (using xhtml2pdf)
-    #     result = BytesIO()
-    #     pdf = pisa.pisaDocument(BytesIO(html.encode("UTF-8")), result)
-
-    #     if not pdf.err:
-    #         response = HttpResponse(result.getvalue(), content_type="application/pdf")
-    #         response["Content-Disposition"] = 'attachment; filename="bill_{}.pdf"'.format(
-    #             client.clientName
-    #         )
-    return redirect("dashboard.html")
+def update_employee(request, pk):
+    try:
+        employee = Employee.objects.get(pk=pk)
+        print(employee)
+        status_choices = Employee.POSITION
+        if request.method == "POST":
+            employee.emp_name = request.POST.get("emp_name")
+            employee.salary = request.POST.get("emp_name")
+            employee.mobile = request.POST.get("mobile")
+            employee.email = request.POST.get("email")
+            employee.password = request.POST.get("password")
+            employee.position = request.POST.get("position")
+            employee.save()
+            print("Employee Details Updated: ", employee.emp_name)
+            return redirect("dashboard")
+        else:
+            print("GET Method for updating employee...")
+            return render(request, "update_employee.html", {"employee": employee})
+    except employee.DoesNotExist:
+        print("Employee does not exist....")
+        return render(
+            request, "update_employee.html", {"status_choices": status_choices}
+        )
+    except Exception as e:
+        print(">>>>>>>>>> Update Employee >>>>>>>> Exception Occured >>>>>>>>>>", e)
+        return redirect("dashboard")
 
 
-# else:
-# return HttpResponse("Error rendering PDF")
-
-from django.db.models import Q
+# def delete_employee(request, pk):
+#     if request.position == "Admin":
+#         emp = Employee.objects.get(pk=pk)
+#         emp.delete()
+#         print("Employee successfully deleted")
+#     return redirect("dashboard")
 
 
 def billing_list(request):
@@ -595,3 +498,86 @@ def billing_list(request):
         "query": query,
     }
     return render(request, "billing_list.html", context)
+
+
+def view_attendance(request):
+    attendance_records = Attendance.objects.select_related("employee").order_by("-date")
+
+    # Filter by employee name (if provided)
+    employee_name = request.GET.get("employee_name")
+    if employee_name:
+        attendance_records = attendance_records.filter(
+            employee__emp_name__icontains=employee_name
+        )
+
+    # Filter by date (if provided)
+    date = request.GET.get("date")
+    if date:
+        attendance_records = attendance_records.filter(date=date)
+
+    # Paginate records
+    paginator = Paginator(attendance_records, 25)  # 25 records per page
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        "page_obj": page_obj,
+    }
+    return render(request, "view_attendance.html", context)
+
+
+def assign_tasks(request):
+    if request.method == "POST":
+        title = request.POST["title"]
+        description = request.POST["description"]
+        assigned_to = Employee.objects.get(id=request.POST["assigned_to"])
+        due_date = request.POST["due_date"]
+
+        # Assign the task
+        Task.objects.create(
+            title=title,
+            description=description,
+            assigned_to=assigned_to,
+            assigned_by=request.user.employee,  # Assuming logged-in user is an employee
+            due_date=due_date,
+        )
+        messages.success(request, "Task assigned successfully!")
+        return redirect("assign_task")
+
+    employees = Employee.objects.filter(position="Staff")
+    return render(request, "assign_task.html", {"employees": employees})
+
+
+def task_list(request):
+    today = now().date()
+    if request.user.employee.position == "Admin":
+        tasks = Task.objects.filter(assigned_date=today)
+    else:
+        tasks = Task.objects.filter(
+            assigned_date=today, assigned_to=request.user.employee
+        )
+
+    return render(request, "task_list.html", {"tasks": tasks})
+
+
+def view_progress(request):
+    if request.user.position == "Admin":
+        tasks = Task.objects.all().order_by("-assigned_date")
+    else:
+        tasks = Task.objects.filter(employee=request.user)
+
+    return render(request, "view_progress.html", {"tasks": tasks})
+
+
+def update_progress(request, task_id):
+    task = Task.objects.get(id=task_id, assigned_to=request.user.employee)
+
+    if request.method == "POST":
+        progress = request.POST["progress"]
+        task.progress = progress
+        task.status = request.POST["status"]
+        task.save()
+        messages.success(request, "Progress updated successfully!")
+        return redirect("task_list")
+
+    return render(request, "update_progress.html", {"task": task})

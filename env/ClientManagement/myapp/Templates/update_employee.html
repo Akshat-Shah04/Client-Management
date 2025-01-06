@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Update Employee</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
+  </head>
+  <body>
+    <div class="container mt-5">
+      <h1 class="text-center">Update Employee Details</h1>
+      <form method="POST" class="mt-4" action="{% url 'update_employee' pk=employee.pk %}">
+        {% csrf_token %}
+        <!-- Employee Name -->
+        <div class="mb-3">
+          <label for="emp_name" class="form-label">Employee Name</label>
+          <input type="text" id="emp_name" name="emp_name" class="form-control" value="{{ employee.emp_name }}" required />
+        </div>
+        <!-- Salary -->
+        <div class="mb-3">
+          <label for="salary" class="form-label">Salary</label>
+          <input type="number" id="salary" name="salary" class="form-control" value="{{ employee.salary }}" required />
+        </div>
+        <!-- Mobile -->
+        <div class="mb-3">
+          <label for="mobile" class="form-label">Mobile</label>
+          <input type="tel" id="mobile" name="mobile" class="form-control" value="{{ employee.mobile }}" required />
+        </div>
+        <!-- Email -->
+        <div class="mb-3">
+          <label for="email" class="form-label">Email</label>
+          <input type="email" id="email" name="email" class="form-control" value="{{ employee.email }}" required />
+        </div>
+        <!-- Password -->
+        <div class="mb-3">
+          <label for="password" class="form-label">Password</label>
+          <input type="password" id="password" name="password" class="form-control" value="{{ employee.password }}" required />
+        </div>
+        <div class="mb-3">
+          <label for="position" class="form-label">Position:</label>
+          <select id="{{ employee.position }}" name="{{ employee.position }}" class="form-control" required>
+            {% for key, value in status_choices %}
+              {% if key == service.status %}
+                <option value="{{ employee.position }}" selected>{{ employee.position }}</option>
+              {% else %}
+                <option value="{{ employee.position }}">{{ employee.position }}</option>
+              {% endif %}
+            {% endfor %}
+          </select>
+        </div>
+        <!-- Submit Button -->
+        <div class="text-center">
+          <button type="submit" class="btn btn-primary">Update Employee</button>
+        </div>
+      </form>
+    </div>
+  </body>
+</html>

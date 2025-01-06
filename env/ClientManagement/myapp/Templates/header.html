@@ -27,6 +27,25 @@
                 </li>
               </ul>
             </li>
+            {% if employee.position == 'Admin' %}
+              <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="employeeDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Admin Menu</a>
+                <ul class="dropdown-menu" aria-labelledby="employeeDropdown">
+                  <li>
+                    <a class="dropdown-item" href="{% url 'add_client' %}">Add a Employee</a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item" href="{% url 'clients' %}">Assign Tasks to Employee</a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item" href="{% url 'view_progress' %}">View Progress</a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item" href="{% url 'view_attendance' %}">View Attendance</a>
+                  </li>
+                </ul>
+              </li>
+            {% endif %}
             <li class="nav-item dropdown">
               <a class="nav-link dropdown-toggle" href="#" id="clientDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Clients</a>
               <ul class="dropdown-menu" aria-labelledby="clientDropdown">

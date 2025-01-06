@@ -1,0 +1,23 @@
+{% extends 'header.html' %}
+{% block content %}
+  <form method="POST">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label for="progress" class="form-label">Progress</label>
+      <textarea class="form-control" id="progress" name="progress" rows="3" required>{{ task.progress }}</textarea>
+    </div>
+    <div class="mb-3">
+      <label for="status" class="form-label">Status</label>
+      <select class="form-select" id="status" name="status" required>
+        {% for key, value in task.STATUS_CHOICES %}
+          {% if key == task.status %}
+            <option value="{{ key }}" selected>{{ value }}</option>
+          {% else %}
+            <option value="{{ key }}">{{ value }}</option>
+          {% endif %}
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Save Progress</button>
+  </form>
+{% endblock %}

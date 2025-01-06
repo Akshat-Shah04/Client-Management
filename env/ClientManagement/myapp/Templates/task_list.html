@@ -1,0 +1,33 @@
+{% extends 'header.html' %}
+{% block content %}
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Title</th>
+        <th>Description</th>
+        <th>Assigned To</th>
+        <th>Status</th>
+        <th>Progress</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for task in tasks %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td>{{ task.title }}</td>
+          <td>{{ task.description }}</td>
+          <td>{{ task.assigned_to.emp_name }}</td>
+          <td>{{ task.status }}</td>
+          <td>
+            {% if request.user.employee.position == 'Staff' %}
+              <a href="{% url 'update_progress' task.id %}" class="btn btn-sm btn-secondary">Update</a>
+            {% else %}
+              {{ task.progress }}
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

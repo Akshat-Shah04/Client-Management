@@ -3,20 +3,18 @@ from datetime import date
 
 
 class Employee(models.Model):
-    STATUS_CH = [
-        ("Active", "Active"),
-        ("Inactive", "Inactive"),
-        ("On Leave", "On Leave"),
+    POSITION = [
+        ("Admin", "Admin"),
+        ("Staff", "Staff"),
     ]
-
     emp_name = models.CharField(max_length=50)
     salary = models.DecimalField(max_digits=20, decimal_places=0)
-    status = models.CharField(max_length=20, choices=STATUS_CH, default="Active")
     createdAt = models.DateTimeField(auto_now_add=True)
     updatedAt = models.DateTimeField(auto_now=True)
     mobile = models.BigIntegerField(unique=True, default=1000100010)
     email = models.EmailField(unique=True)
     password = models.CharField(max_length=20, default="0000")
+    position = models.CharField(max_length=25, choices=POSITION, default="Staff")
 
     def __str__(self):
         return self.emp_name
@@ -114,3 +112,43 @@ class Billing(models.Model):
             f"{self.fees_recieved} - "
             f"{self.billing_date}"
         )
+
+
+class Attendance(models.Model):
+    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    STATUS = [
+        ("Present", "Present"),
+        ("Absent", "Absent"),
+        ("On Leave", "On Leave"),
+    ]
+    status = models.CharField(choices=STATUS, max_length=20)
+    date = models.DateField(auto_now_add=True)
+    time = models.TimeField(auto_now_add=True)
+    is_late = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.employee.emp_name} - {self.date} - {self.status}"
+
+
+class Task(models.Model):
+    STATUS_CHOICES = [
+        ("Pending", "Pending"),
+        ("In Progress", "In Progress"),
+        ("Completed", "Completed"),
+    ]
+
+    title = models.CharField(max_length=100)
+    description = models.TextField()
+    assigned_to = models.ForeignKey(Employee, on_delete=models.CASCADE)
+    assigned_by = models.ForeignKey(
+        Employee, on_delete=models.CASCADE, related_name="assigned_tasks"
+    )
+    assigned_date = models.DateField(auto_now_add=True)
+    due_date = models.DateField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="Pending")
+    progress = models.TextField(
+        blank=True, null=True
+    )  # To store employee's progress notes
+
+    def __str__(self):
+        return f"{self.title} - {self.status}"
